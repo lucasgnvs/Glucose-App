@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:gluco/models/device.dart';
 import 'package:gluco/models/measurement.dart';
@@ -16,11 +17,9 @@ class BluetoothHelper {
   // Dispositivo atualmente conectado, é o que é efetivamente utilizado na coleta
   _DeviceInternal? _connectedDevice;
 
-  // Variável que contém o conteúdo enviado ao dispositivo
-  late String _flag;
-
   //// VARIAVEL PARA SELECIONAR IMPLEMENTAÇÃO
   bool source = true;
+  List<String> valuesError = [];
 
   /// Stream com sinais de alteração no estado do Bluetooth ligado/desligado
   Stream<bool> get state => _state().asBroadcastStream();
@@ -185,8 +184,6 @@ class BluetoothHelper {
             await _saveDevice(device.id.id);
             // ### falta: função para verificar se possui medições nao recebidas
             _yieldConnection();
-            _flag = _BluetoothFlags.idle;
-            _transmit();
           } else {
             device.disconnect();
             status = false;
@@ -242,29 +239,6 @@ class BluetoothHelper {
     return sp.getString('egble');
   }
 
-  /// Escreve a flag continuamente no Bluetooth para iniciar uma nova medição
-  void _transmit() async {
-    Timer.periodic(
-      const Duration(milliseconds: 500),
-      (timer) {
-        if (_connectedDevice == null) {
-          timer.cancel();
-        }
-        if (_flag != _BluetoothFlags.waiting) {
-          // precisa esperar receber ?? (withResponse com async e await)
-          _connectedDevice!.transmitter.write(utf8.encode(_flag));
-          print('--- Transmit: $_flag');
-        }
-        if (_flag == _BluetoothFlags.requesting) {
-          _flag = _BluetoothFlags.waiting;
-        }
-        if (_flag == _BluetoothFlags.received) {
-          _flag = _BluetoothFlags.idle;
-        }
-      },
-    );
-  }
-
   /// Faz a leitura dos dados da medição do dispositivo conectado VERSÃO RANDOM
   Future<MeasurementCollected> collect_rand() async {
     Random random = Random();
@@ -310,21 +284,13 @@ class BluetoothHelper {
     // ##### ON CONNECTION LOST CORTAR COLETA
     assert(_connectedDevice != null);
 
-    // não consegue escrever ainda
-    _flag = _BluetoothFlags.requesting;
-    Completer<void> flagConfirm = Completer();
-    Timer flagTimer =
-        Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      // a flag é trocada dentro do método _transmit
-      if (_flag != _BluetoothFlags.requesting) {
-        flagConfirm.complete();
-        timer.cancel();
-      }
-    });
-    // aguarda confirmação que a flag foi enviada
-    await flagConfirm.future.timeout(const Duration(seconds: 3), onTimeout: () {
-      flagTimer.cancel();
-    });
+    try {
+      await _connectedDevice!.transmitter.write(
+          utf8.encode(_BluetoothFlags.requesting),
+          withoutResponse: true);
+    } catch (e) {
+      print('--- BLE Write error');
+    }
 
     late MeasurementCollected measure;
     List<double> m_4p = [];
@@ -333,33 +299,43 @@ class BluetoothHelper {
     List<double> f_2p = [];
     Completer<void> confirm = Completer();
 
+    valuesError = [];
+
     // prepara buffer e tx
     List<String> readBuffer = [];
-    _connectedDevice!.receiver.setNotifyValue(true);
+    await _connectedDevice!.receiver.setNotifyValue(true);
     Stream<List<int>> readStream = _connectedDevice!.receiver.value;
     // escuta novos valores do rx
     StreamSubscription<List<int>> streamSubs = readStream.listen((hex) {
-      readBuffer.add(utf8.decode(hex));
-      // if (fim) confirm.complete(); // ### precisa de identificador de fim para nao ficar esperando timeout
+      String dec = utf8.decode(hex);
+      readBuffer.add(dec);
+      valuesError.add(dec);
+      print('--- dec  = $dec'); //############
+      if (dec.contains('\$')) {
+        try {
+          confirm.complete();
+        } catch (e) {
+          print('--- Complete error');
+        }
+      }
     });
     // cancela subscrição se ocorrer timeout
-    await confirm.future.timeout(const Duration(seconds: 20), onTimeout: () {
-      _connectedDevice!.receiver.setNotifyValue(false);
-      streamSubs.cancel();
-    });
+    await confirm.future.timeout(const Duration(seconds: 20));
+    await streamSubs.cancel();
+    await _connectedDevice!.receiver.setNotifyValue(false);
+
     // split dos valores e conversão para num
     List<String> valuesStr = [];
     List<num> values = [];
     valuesStr.addAll(readBuffer.join().split(';'));
     for (String str in valuesStr) {
       try {
-        print(str);
+        print('--- str = $str'); //############
         values.add(num.parse(str));
       } catch (e) {
-        print('### Parse error');
+        print('--- Parse error');
       }
     }
-
     if (source) {
       // VERSAO LEONARDO
       // MaxLed1; // -- 0
@@ -404,8 +380,8 @@ class BluetoothHelper {
           minled: values.sublist(4, 8).cast<double>(),
           date: DateTime.now(),
         );
-      } catch (er) {
-        print('### problema de parse $er');
+      } catch (e) {
+        print('-- List parse error $e');
       }
     } else {
       // VERSAO PATRICK (tá alternado mod fase)
@@ -457,12 +433,13 @@ class BluetoothHelper {
           date: DateTime.now(),
         );
       } catch (e) {
-        print(e);
+        print('-- List parse error $e');
       }
     }
 
     // ### se ocorrer um erro precisa enviar que deu erro?
-    _flag = _BluetoothFlags.received;
+    // _flag = _BluetoothFlags.received;
+    // _connectedDevice!.transmitter.write(utf8.encode(_BluetoothFlags.received));
 
     return measure;
   }
@@ -480,8 +457,6 @@ class _DeviceInternal {
 }
 
 abstract class _BluetoothFlags {
-  static const String idle = 'EGIDLE';
-  static const String requesting = 'EGSEND';
-  static const String waiting = 'EGWAIT';
-  static const String received = 'EGRCVD';
+  static const String requesting = 'SEND';
+  static const String received = 'RCVD';
 }

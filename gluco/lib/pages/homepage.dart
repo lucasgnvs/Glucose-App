@@ -247,6 +247,11 @@ class _HomePageState extends State<HomePage> {
                             return AlertDialog(
                                 title: Text(
                                     'Ocorreu um erro na coleta dos dados do dispositivo Bluetooth...'),
+                                content: SingleChildScrollView(
+                                    child: Column(children: [
+                                  Text(
+                                      '${BluetoothHelper.instance.valuesError}')
+                                ])),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10.0),
                                 ),
@@ -436,8 +441,10 @@ class _HomePageState extends State<HomePage> {
                                                                 ? 'Medição enviada com sucesso'
                                                                 : 'Ocorreu um erro no envio dos dados coletados, eles serão armazenados até que seja possível enviar...'),
                                                             // ALT
-                                                            content: response
-                                                                ? SingleChildScrollView(
+                                                            content:
+                                                                // response
+                                                                //     ?
+                                                                SingleChildScrollView(
                                                                     child: Column(
                                                                         children: measurement
                                                                             .toMap()
@@ -445,7 +452,8 @@ class _HomePageState extends State<HomePage> {
                                                                             .map((e) => Text(
                                                                                 '${e.key}: ${e.value}'))
                                                                             .toList()))
-                                                                : null,
+                                                            // : null
+                                                            ,
                                                             //////////
                                                             shape:
                                                                 RoundedRectangleBorder(
