@@ -155,7 +155,8 @@ class _DevicePageState extends State<DevicePage> {
                                         itemCount: devices.length,
                                         itemBuilder: (context, i) {
                                           return ListTile(
-                                            title: Text(devices[i].name,
+                                            title: Text(
+                                                '${devices[i].name} ${devices[i].id}',
                                                 style: TextStyle(
                                                     color:
                                                         devices[i].connected &&
@@ -263,6 +264,7 @@ class _DevicePageState extends State<DevicePage> {
                                                         ],
                                                       ),
                                                       ///// TEMPORARIO
+                                                      /*
                                                       content:
                                                           ValueListenableBuilder(
                                                         valueListenable:
@@ -288,6 +290,7 @@ class _DevicePageState extends State<DevicePage> {
                                                           ],
                                                         ),
                                                       ),
+                                                      */
                                                       /////
                                                       actionsAlignment:
                                                           MainAxisAlignment

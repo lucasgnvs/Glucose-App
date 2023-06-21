@@ -18,7 +18,7 @@ class BluetoothHelper {
   _DeviceInternal? _connectedDevice;
 
   //// VARIAVEL PARA SELECIONAR IMPLEMENTAÇÃO
-  bool source = true;
+  bool source = false;
   List<String> valuesError = [];
 
   /// Stream com sinais de alteração no estado do Bluetooth ligado/desligado
