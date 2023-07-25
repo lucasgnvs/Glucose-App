@@ -185,7 +185,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                             ),
                             onChanged: (text) {
-                              _isFieldFilled[context.loc.name] = text.isNotEmpty;
+                              _isFieldFilled['name'] = text.isNotEmpty;
                             },
                             validator: (text) {
                               if (text == null || text.isEmpty) {
@@ -224,7 +224,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                             ),
                             onChanged: (text) {
-                              _isFieldFilled[context.loc.email] = text.isNotEmpty;
+                              _isFieldFilled['email'] = text.isNotEmpty;
                               _emailAlreadyInUse = false;
                             },
                             validator: (text) {
@@ -232,7 +232,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                 return context.loc.generic_error_required_field;
                               }
                               if (_emailAlreadyInUse) {
-                                return context.loc.register_error_email_already_in_use;
+                                return context
+                                    .loc.register_error_email_already_in_use;
                               }
                               if (!RegExp(
                                       r"^[a-zA-Z0-9\.]+@[a-zA-Z]+(\.[a-zA-Z]+)+$",
@@ -272,16 +273,18 @@ class _SignUpPageState extends State<SignUpPage> {
                                         ),
                                       ),
                                     ),
-                                    onChanged: (text) {
-                                      _isFieldFilled['crm'] = text.isNotEmpty;
-                                    },
+                                    // onChanged: (text) {
+                                    //   _isFieldFilled['crm'] = text.isNotEmpty;
+                                    // },
                                     validator: (text) {
                                       if (text == null || text.isEmpty) {
-                                        return context.loc.generic_error_required_field;
+                                        return context
+                                            .loc.generic_error_required_field;
                                       }
                                       //validar CRM aqui
                                       if (text.length != 6) {
-                                        return context.loc.register_error_invalid_crm;
+                                        return context
+                                            .loc.register_error_invalid_crm;
                                       }
                                       return null;
                                     },
@@ -328,7 +331,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   color: CustomColors.lightGreen),
                             ),
                             onChanged: (text) {
-                              _isFieldFilled[context.loc.password] = text.isNotEmpty;
+                              _isFieldFilled['password'] = text.isNotEmpty;
                             },
                             validator: (text) {
                               if (text == null || text.isEmpty) {
@@ -358,7 +361,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                       alignment: Alignment.bottomRight,
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        context.loc.generic_error_unfilled_fields,
+                                        context
+                                            .loc.generic_error_unfilled_fields,
                                         style: TextStyle(color: Colors.grey),
                                       ),
                                     ),
@@ -418,7 +422,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                                 switch (API
                                                     .instance.responseMessage) {
                                                   case APIResponseMessages
-                                                      .alreadyRegistered:
+                                                        .alreadyRegistered:
                                                     setState(() {
                                                       _emailAlreadyInUse = true;
                                                     });
@@ -502,7 +506,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             ],
                           ),
                           TextButton(
-                            child: Text(context.loc.register_view_already_registered),
+                            child: Text(
+                                context.loc.register_view_already_registered),
                             style: TextButton.styleFrom(
                               textStyle: TextStyle(
                                 fontSize: 16.0,

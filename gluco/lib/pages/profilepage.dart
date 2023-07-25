@@ -1,13 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors_in_immutables, prefer_const_constructors
 
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart';
-import 'package:gluco/db/databasehelper.dart';
+import 'package:gluco/controllers/profilecontroller.dart';
 import 'package:gluco/models/user.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/styles/customcolors.dart';
@@ -23,56 +17,20 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   User user = API.instance.currentUser!;
-  late final TextEditingController _birthdate;
-  late final TextEditingController _weight;
-  late final TextEditingController _height;
-  Image? _profile_pic;
-  String? _profile_pic_path;
 
-  final String _dropdownValueSex =
-      API.instance.currentUser!.profile.sex == 'M' ? 'Masculino' : 'Feminino';
-  final String _dropdownValueDiabetes =
-      API.instance.currentUser!.profile.diabetes_type == 'T1'
-          ? 'Tipo 1'
-          : API.instance.currentUser!.profile.diabetes_type == 'T2'
-              ? 'Tipo 2'
-              : 'Não tenho diabetes';
-
-  @override
-  void initState() {
-    _birthdate = TextEditingController(
-        text: DateFormat.yMd('pt_BR').format(user.profile.birthday));
-    _weight = TextEditingController(text: user.profile.weight.toString());
-    _height = TextEditingController(text: user.profile.height.toString());
-    _profile_pic_path = user.profile.profile_pic;
-    super.initState();
-  }
+  ProfileController controller =
+      ProfileController.fromUser(API.instance.currentUser!);
 
   @override
   void dispose() {
-    _birthdate.dispose();
-    _weight.dispose();
-    _height.dispose();
-    _validFormVN.dispose();
+    controller.dispose();
     super.dispose();
   }
-
-  void _loadProfilePic() {
-    File file = File(_profile_pic_path!);
-    if (file.existsSync()) {
-      _profile_pic = Image.file(file);
-    }
-    setState(() {});
-  }
-
-  final ValueNotifier<bool> _validFormVN = ValueNotifier<bool>(false);
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     double landscapeCorrection =
         MediaQuery.of(context).orientation == Orientation.landscape ? 0.6 : 1.0;
-    _loadProfilePic();
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -111,59 +69,38 @@ class _ProfilePageState extends State<ProfilePage> {
                               color: CustomColors.blueGreen.withOpacity(1.0),
                               shape: BoxShape.circle,
                             ),
-                            child: _profile_pic == null
-                                ? Icon(
-                                    Icons.person,
-                                    size: MediaQuery.of(context).size.width *
-                                        0.3 *
-                                        landscapeCorrection,
-                                    color: Colors.white,
-                                  )
-                                : CircleAvatar(
-                                    backgroundImage: _profile_pic!.image,
-                                    radius: MediaQuery.of(context).size.width *
-                                        0.15 *
-                                        landscapeCorrection,
-                                  ),
+                            child: ValueListenableBuilder<bool>(
+                              valueListenable: controller.profilePicVN,
+                              builder: (_, hasProfilePic, child) {
+                                return hasProfilePic
+                                    ? CircleAvatar(
+                                        backgroundImage:
+                                            controller.profilePic!.image,
+                                        radius:
+                                            MediaQuery.of(context).size.width *
+                                                0.15 *
+                                                landscapeCorrection,
+                                      )
+                                    : Icon(
+                                        Icons.person,
+                                        size:
+                                            MediaQuery.of(context).size.width *
+                                                0.3 *
+                                                landscapeCorrection,
+                                        color: Colors.white,
+                                      );
+                              },
+                            ),
                           ),
                         ),
                         FloatingActionButton(
                           backgroundColor: Colors.grey[200],
+                          onPressed: controller.updateProfilePic,
                           child: Icon(
                             Icons.photo_camera_rounded,
                             size: 30.0,
                             color: Colors.grey,
                           ),
-                          onPressed: () async {
-                            XFile? pickedImage = await ImagePicker()
-                                .pickImage(source: ImageSource.gallery);
-                            if (pickedImage == null) {
-                              return;
-                            }
-                            CroppedFile? croppedImage =
-                                await ImageCropper().cropImage(
-                              sourcePath: pickedImage.path,
-                              maxWidth: 360,
-                              maxHeight: 360,
-                              aspectRatio:
-                                  CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
-                              cropStyle: CropStyle.circle,
-                            );
-                            if (croppedImage == null) {
-                              return;
-                            }
-                            Directory dir =
-                                await getApplicationDocumentsDirectory();
-                            File image = await File(
-                                    join(dir.path, 'EG_${pickedImage.name}'))
-                                .writeAsBytes(await croppedImage.readAsBytes());
-                            _profile_pic_path = image.path;
-                            // temporário ?
-                            user.profile.profile_pic = _profile_pic_path!;
-                            await API.instance.updateDBUserProfile();
-                            //
-                            _loadProfilePic();
-                          },
                         ),
                       ],
                     ),
@@ -193,12 +130,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       child: Form(
-                        key: _formKey,
-                        autovalidateMode: AutovalidateMode.always,
-                        onChanged: () {
-                          _validFormVN.value =
-                              _formKey.currentState?.validate() ?? false;
-                        },
+                        key: controller.formKey,
+                        autovalidateMode: controller.validationMode,
+                        onChanged: controller.validate,
                         child: Column(
                           children: [
                             Card(
@@ -230,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   TextFormField(
                                     enabled:
                                         false, // Não pode ser alterado por enquanto
-                                    controller: _birthdate,
+                                    controller: controller.birthdate,
                                     inputFormatters: [DateFormatter()],
                                     style: TextStyle(color: Colors.black38),
                                     decoration: InputDecoration(
@@ -241,22 +175,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       contentPadding: EdgeInsets.only(
                                           top: 15.0, left: 15.0),
                                     ),
-                                    validator: (text) {
-                                      bool valid = false;
-                                      try {
-                                        DateFormat.yMd('pt_BR')
-                                            .parseStrict(text ?? '');
-                                        valid = true;
-                                      } catch (e) {}
-                                      if (text == null ||
-                                          text.length != 10 ||
-                                          !text.contains('/') ||
-                                          !valid) {
-                                        return '*Insira uma data válida';
-                                      }
-                                      // precisa testar também se o valor inserido faz sentido => ex. datetime.now-120<text<datetime.now
-                                      return null;
-                                    },
+                                    validator: controller.validatorBirthdate,
                                     keyboardType: TextInputType.datetime,
                                     autocorrect: false,
                                     enableSuggestions: false,
@@ -296,7 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                           ),
                                         ),
                                         TextFormField(
-                                          controller: _weight,
+                                          controller: controller.weight,
                                           decoration: InputDecoration(
                                             border: OutlineInputBorder(
                                               borderSide: BorderSide.none,
@@ -309,16 +228,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                 left: 15.0,
                                                 right: 10.0),
                                           ),
-                                          validator: (text) {
-                                            if (text == null ||
-                                                double.tryParse(text.replaceAll(
-                                                        ',', '.')) ==
-                                                    null) {
-                                              return '*Insira um número válido';
-                                            }
-                                            // precisa testar também se o valor inserido faz sentido => ex. 30.0<text<200.0
-                                            return null;
-                                          },
+                                          validator: controller.validatorWeight,
                                           keyboardType:
                                               TextInputType.numberWithOptions(
                                                   decimal: true),
@@ -357,7 +267,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                           ),
                                         ),
                                         TextFormField(
-                                          controller: _height,
+                                          controller: controller.height,
                                           decoration: InputDecoration(
                                             border: OutlineInputBorder(
                                               borderSide: BorderSide.none,
@@ -370,16 +280,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                 left: 15.0,
                                                 right: 10.0),
                                           ),
-                                          validator: (text) {
-                                            if (text == null ||
-                                                double.tryParse(text.replaceAll(
-                                                        ',', '.')) ==
-                                                    null) {
-                                              return '*Insira um número válido';
-                                            }
-                                            // precisa testar também se o valor inserido faz sentido => ex. 0.5<text<2.5
-                                            return null;
-                                          },
+                                          validator: controller.validatorHeight,
                                           keyboardType:
                                               TextInputType.numberWithOptions(
                                                   decimal: true),
@@ -418,7 +319,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                   ),
                                   DropdownButtonFormField(
-                                    value: _dropdownValueSex,
+                                    value: controller.sex,
                                     decoration: InputDecoration(
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide.none,
@@ -431,12 +332,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                     onChanged: null,
                                     // Não pode ser alterado por enquanto
                                     // (String? value) {
-                                    //   setState(() {
-                                    //     _dropdownValueSex = value!;
-                                    //   });
+                                    //     controller.sex = value!;
                                     // },
-                                    items: ['Masculino', 'Feminino']
-                                        .map((String value) {
+                                    items:
+                                        controller.sexList.map((String value) {
                                       return DropdownMenuItem(
                                         value: value,
                                         child: Text(value),
@@ -474,7 +373,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                   ),
                                   DropdownButtonFormField(
-                                    value: _dropdownValueDiabetes,
+                                    value: controller.diabetes,
                                     decoration: InputDecoration(
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide.none,
@@ -487,15 +386,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                     onChanged: null,
                                     // Não pode ser alterado por enquanto
                                     // (String? value) {
-                                    //   setState(() {
-                                    //     _dropdownValueDiabetes = value!;
-                                    //   });
+                                    //     controller.diabetes = value!;
                                     // },
-                                    items: [
-                                      'Tipo 1',
-                                      'Tipo 2',
-                                      'Não tenho diabetes',
-                                    ].map((String value) {
+                                    items: controller.diabetesList
+                                        .map((String value) {
                                       return DropdownMenuItem(
                                         value: value,
                                         child: Text(value),
@@ -509,15 +403,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                 padding:
                                     EdgeInsets.only(top: 15.0, left: 15.0)),
                             ValueListenableBuilder<bool>(
-                              valueListenable: _validFormVN,
+                              valueListenable: controller.validFormVN,
                               builder: (_, isValid, child) {
                                 return Column(
                                   children: [
                                     TextButton(
-                                      child: const Text(
-                                          'Salvar'), // nao consegui deixar esse botão do mesmo tamanho dos outros retangulos acima dele
                                       style: TextButton.styleFrom(
-                                        primary: Colors.white,
+                                        foregroundColor: Colors.white,
                                         textStyle: TextStyle(
                                           color: Colors.white,
                                           // a cor tá errada, aparecendo cinza por algum motivo
@@ -536,43 +428,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                       ),
                                       onPressed: !isValid
                                           ? null
-                                          : () async {
-                                              _validFormVN.value = _formKey
-                                                      .currentState
-                                                      ?.validate() ??
-                                                  false;
-                                              if (_validFormVN.value) {
-                                                if (await API.instance
-                                                    .updateUserProfile(
-                                                        DateFormat.yMd('pt_BR')
-                                                            .parseStrict(
-                                                                _birthdate
-                                                                    .text),
-                                                        double.parse(_weight
-                                                            .text
-                                                            .replaceAll(',',
-                                                                '.')),
-                                                        double
-                                                            .parse(_height.text
-                                                                .replaceAll(
-                                                                    ',', '.')),
-                                                        _dropdownValueSex ==
-                                                                'Masculino'
-                                                            ? 'M'
-                                                            : 'F',
-                                                        _dropdownValueDiabetes ==
-                                                                'Tipo 1'
-                                                            ? 'T1'
-                                                            : _dropdownValueDiabetes ==
-                                                                    'Tipo 2'
-                                                                ? 'T2'
-                                                                : 'NP',
-                                                        _profile_pic_path ??
-                                                            '')) {
-                                                  _validFormVN.value = false;
-                                                }
-                                              }
-                                            },
+                                          : controller.executeUpdate,
+                                      child: const Text('Salvar'),
                                     ),
                                   ],
                                 );
