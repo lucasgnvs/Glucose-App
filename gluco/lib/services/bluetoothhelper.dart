@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:gluco/models/device.dart';
 import 'package:gluco/models/measurement.dart';
@@ -12,7 +11,8 @@ class BluetoothHelper {
 
   static final BluetoothHelper instance = BluetoothHelper._privateConstructor();
 
-  final FlutterBluePlus _bluetooth = FlutterBluePlus.instance;
+  // deprec
+  // final FlutterBluePlus _bluetooth = FlutterBluePlus.instance;
 
   // Dispositivo atualmente conectado, é o que é efetivamente utilizado na coleta
   _DeviceInternal? _connectedDevice;
@@ -26,8 +26,8 @@ class BluetoothHelper {
 
   /// Stream que encapsula e transmite os sinais de estado do FlutterBlue
   Stream<bool> _state() async* {
-    await for (final value in _bluetooth.state) {
-      bool available = value == BluetoothState.on ? true : false;
+    await for (final value in FlutterBluePlus.adapterState) {
+      bool available = value == BluetoothAdapterState.on ? true : false;
       if (!available) {
         disconnect();
         _devices.clear();
@@ -41,7 +41,7 @@ class BluetoothHelper {
 
   /// Stream que encapsula e transmite os sinais de escaneamento do FlutterBlue
   Stream<bool> _scanning() async* {
-    await for (final value in _bluetooth.isScanning) {
+    await for (final value in FlutterBluePlus.isScanning) {
       yield value;
     }
   }
@@ -58,11 +58,12 @@ class BluetoothHelper {
     _connected.add(true);
     String error = 'Connected';
     try {
-      await for (final value in _connectedDevice!.device.state) {
-        bool conn = value == BluetoothDeviceState.connected ? true : false;
+      await for (final value in _connectedDevice!.device.connectionState) {
+        bool conn = value == BluetoothConnectionState.connected ? true : false;
         // tenta reconectar
         if (!conn) {
-          if (await connect(Device(id: _connectedDevice!.device.id.id))) {
+          if (await connect(
+              Device(id: _connectedDevice!.device.remoteId.str))) {
             conn = true;
             error = 'Reconnected';
           } else {
@@ -101,8 +102,8 @@ class BluetoothHelper {
 
   /// Inicia escaneamento e inclui os resultados em devices
   Future<void> scan() async {
-    await _bluetooth.startScan(timeout: const Duration(seconds: 3));
-    _bluetooth.scanResults.listen(
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
+    FlutterBluePlus.scanResults.listen(
       (results) {
         _devices.clear();
         for (ScanResult r in results) {
@@ -114,7 +115,7 @@ class BluetoothHelper {
         }
       },
     );
-    await _bluetooth.stopScan();
+    await FlutterBluePlus.stopScan();
     if (_connectedDevice != null) {
       // dispositivos conectados não são inseridos automaticamente
       // na lista de scan do FlutterBlue
@@ -240,6 +241,7 @@ class BluetoothHelper {
   }
 
   /// Faz a leitura dos dados da medição do dispositivo conectado VERSÃO RANDOM
+  @Deprecated('Utilizado apenas como teste')
   Future<MeasurementCollected> collect_rand() async {
     Random random = Random();
     List<double> maxled = <double>[];
@@ -458,5 +460,5 @@ class _DeviceInternal {
 
 abstract class _BluetoothFlags {
   static const String requesting = 'SEND';
-  static const String received = 'RCVD';
+  // static const String received = 'RCVD';
 }

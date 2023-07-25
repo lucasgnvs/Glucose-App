@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=C:\Dev\flutter
-FLUTTER_APPLICATION_PATH=C:\Users\annam\OneDrive\Documentos\Computação\IC\e-Gluco-App-main\e-Gluco-App-main\gluco
+FLUTTER_ROOT=C:\Users\User\AppData\Local\FlutterSDK\flutter
+FLUTTER_APPLICATION_PATH=D:\Lucas\UDESC\Quinta Fase 2022-1\Bolsa Bertemes\App EGlico\Gluco\Glucose-App\gluco
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_TARGET=lib\main.dart
 FLUTTER_BUILD_DIR=build
