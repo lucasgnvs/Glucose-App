@@ -1,14 +1,8 @@
 // ignore_for_file: must_be_immutable, use_key_in_widget_constructors, prefer_const_constructors
 
-import 'dart:io';
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:async_button_builder/async_button_builder.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart';
-import 'package:gluco/db/databasehelper.dart';
+import 'package:gluco/controllers/profilecontroller.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/styles/customcolors.dart';
 import 'package:gluco/styles/dateformatter.dart';
@@ -21,43 +15,13 @@ class FirstLoginPage extends StatefulWidget {
 }
 
 class _FirstLoginPageState extends State<FirstLoginPage> {
-  late final TextEditingController _birthdate;
-  late final TextEditingController _weight;
-  late final TextEditingController _height;
-  Image? _profile_pic;
-  String? _profile_pic_path;
-
-  String? _dropdownValueSex;
-  String? _dropdownValueDiabetes;
-
-  @override
-  void initState() {
-    _birthdate = TextEditingController();
-    _weight = TextEditingController();
-    _height = TextEditingController();
-    super.initState();
-  }
+  ProfileController controller = ProfileController();
 
   @override
   void dispose() {
-    _birthdate.dispose();
-    _weight.dispose();
-    _height.dispose();
-    _validFormVN.dispose();
+    controller.dispose();
     super.dispose();
   }
-
-  final Map<String, bool> _isFieldFilled = {
-    'birthdate': false,
-    'weight': false,
-    'height': false,
-    'sex': false,
-    'diabetes': false
-  };
-
-  AutovalidateMode _validationMode = AutovalidateMode.disabled;
-  final ValueNotifier<bool> _validFormVN = ValueNotifier<bool>(false);
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -71,20 +35,9 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.1),
           child: Form(
-            key: _formKey,
-            autovalidateMode: _validationMode,
-            onChanged: () async {
-              ///// não é a melhor solução, mas enfim, o onchanged do form é
-              /// chamado antes do onchanged dos fields, precisava que fosse o contrario
-              await Future.delayed(Duration(milliseconds: 1));
-              //////
-              if (_validationMode == AutovalidateMode.always) {
-                _validFormVN.value = _formKey.currentState?.validate() ?? false;
-              } else {
-                _validFormVN.value =
-                    _isFieldFilled.values.every((element) => element);
-              }
-            },
+            key: controller.formKey,
+            autovalidateMode: controller.validationMode,
+            onChanged: controller.validate,
             child: Column(
               children: [
                 Padding(padding: EdgeInsets.all(20.0 * landscapeCorrection)),
@@ -101,57 +54,36 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                           color: CustomColors.blueGreen.withOpacity(1.0),
                           shape: BoxShape.circle,
                         ),
-                        child: _profile_pic == null
-                            ? Icon(
-                                Icons.person,
-                                size: MediaQuery.of(context).size.width *
-                                    0.3 *
-                                    landscapeCorrection,
-                                color: Colors.white,
-                              )
-                            : CircleAvatar(
-                                backgroundImage: _profile_pic!.image,
-                                radius: MediaQuery.of(context).size.width *
-                                    0.15 *
-                                    landscapeCorrection,
-                              ),
+                        child: ValueListenableBuilder<bool>(
+                            valueListenable: controller.profilePicVN,
+                            builder: (_, hasProfilePic, child) {
+                              return hasProfilePic
+                                  ? CircleAvatar(
+                                      backgroundImage:
+                                          controller.profilePic!.image,
+                                      radius:
+                                          MediaQuery.of(context).size.width *
+                                              0.15 *
+                                              landscapeCorrection,
+                                    )
+                                  : Icon(
+                                      Icons.person,
+                                      size: MediaQuery.of(context).size.width *
+                                          0.3 *
+                                          landscapeCorrection,
+                                      color: Colors.white,
+                                    );
+                            }),
                       ),
                     ),
                     FloatingActionButton(
                       backgroundColor: Colors.grey[200],
+                      onPressed: controller.updateProfilePic,
                       child: Icon(
                         Icons.photo_camera_rounded,
                         size: 35.0,
                         color: Colors.grey,
                       ),
-                      onPressed: () async {
-                        XFile? pickedImage = await ImagePicker()
-                            .pickImage(source: ImageSource.gallery);
-                        if (pickedImage == null) {
-                          return;
-                        }
-                        CroppedFile? croppedImage =
-                            await ImageCropper().cropImage(
-                          sourcePath: pickedImage.path,
-                          maxWidth: 360,
-                          maxHeight: 360,
-                          aspectRatio:
-                              CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
-                          cropStyle: CropStyle.circle,
-                        );
-                        if (croppedImage == null) {
-                          return;
-                        }
-                        Directory dir =
-                            await getApplicationDocumentsDirectory();
-                        File image =
-                            await File(join(dir.path, 'EG_${pickedImage.name}'))
-                                .writeAsBytes(await croppedImage.readAsBytes());
-                        _profile_pic_path = image.path;
-                        setState(() {
-                          _profile_pic = Image.file(image);
-                        });
-                      },
                     ),
                   ],
                 ),
@@ -194,7 +126,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                               color: CustomColors.greenBlue.withOpacity(1.0))),
                     ),
                     TextFormField(
-                      controller: _birthdate,
+                      controller: controller.birthdate,
                       inputFormatters: [DateFormatter()],
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
@@ -208,26 +140,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                         isDense: true,
                         contentPadding: EdgeInsets.all(12.0),
                       ),
-                      onChanged: (text) {
-                        _isFieldFilled['birthdate'] = text.isNotEmpty;
-                      },
-                      validator: (text) {
-                        if (text == null || text.isEmpty) {
-                          return '*Campo obrigatório';
-                        }
-                        bool valid = false;
-                        try {
-                          DateFormat.yMd('pt_BR').parseStrict(text);
-                          valid = true;
-                        } catch (e) {}
-                        if (text.length != 10 ||
-                            !text.contains('/') ||
-                            !valid) {
-                          return '*Insira uma data válida';
-                        }
-                        // precisa testar também se o valor inserido faz sentido => ex. datetime.now-120<text<datetime.now
-                        return null;
-                      },
+                      validator: controller.validatorBirthdate,
                       keyboardType: TextInputType.datetime,
                       autocorrect: false,
                       enableSuggestions: false,
@@ -248,36 +161,23 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                                         .withOpacity(1.0))),
                           ),
                           TextFormField(
-                            controller: _weight,
+                            controller: controller.weight,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
                                 borderSide: BorderSide.none,
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(8.0)),
                               ),
-                              hintText: '70.5',
+                              hintText: '70,5',
                               hintStyle: TextStyle(color: Colors.black26),
-                              // suffixText: 'kg',
+                              suffixText: 'kg',
                               filled: true,
                               fillColor:
                                   CustomColors.greenBlue.withOpacity(0.25),
                               isDense: true,
                               contentPadding: EdgeInsets.all(12.0),
                             ),
-                            onChanged: (text) {
-                              _isFieldFilled['weight'] = text.isNotEmpty;
-                            },
-                            validator: (text) {
-                              if (text == null || text.isEmpty) {
-                                return '*Campo obrigatório';
-                              }
-                              if (double.tryParse(text.replaceAll(',', '.')) ==
-                                  null) {
-                                return '*Insira um número válido';
-                              }
-                              // precisa testar também se o valor inserido faz sentido => ex. 30.0<text<200.0
-                              return null;
-                            },
+                            validator: controller.validatorWeight,
                             keyboardType:
                                 TextInputType.numberWithOptions(decimal: true),
                           ),
@@ -297,36 +197,23 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                                         .withOpacity(1.0))),
                           ),
                           TextFormField(
-                            controller: _height,
+                            controller: controller.height,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
                                 borderSide: BorderSide.none,
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(8.0)),
                               ),
-                              hintText: '1.67',
+                              hintText: '1,67',
                               hintStyle: TextStyle(color: Colors.black26),
-                              // suffixText: 'm',
+                              suffixText: 'm',
                               filled: true,
                               fillColor:
                                   CustomColors.greenBlue.withOpacity(0.25),
                               isDense: true,
                               contentPadding: EdgeInsets.all(12.0),
                             ),
-                            onChanged: (text) {
-                              _isFieldFilled['height'] = text.isNotEmpty;
-                            },
-                            validator: (text) {
-                              if (text == null || text.isEmpty) {
-                                return '*Campo obrigatório';
-                              }
-                              if (double.tryParse(text.replaceAll(',', '.')) ==
-                                  null) {
-                                return '*Insira um número válido';
-                              }
-                              // precisa testar também se o valor inserido faz sentido => ex. 0.5<text<2.5
-                              return null;
-                            },
+                            validator: controller.validatorHeight,
                             keyboardType:
                                 TextInputType.numberWithOptions(decimal: true),
                           ),
@@ -346,7 +233,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                     ),
                     DropdownButtonFormField(
                       // hint: Text('Selecionar'),
-                      value: _dropdownValueSex,
+                      value: controller.sex,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderSide: BorderSide.none,
@@ -359,12 +246,9 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                       ),
                       icon: Icon(Icons.keyboard_arrow_down),
                       onChanged: (String? value) {
-                        _isFieldFilled['sex'] = value?.isNotEmpty ?? false;
-                        setState(() {
-                          _dropdownValueSex = value!;
-                        });
+                        controller.sex = value!;
                       },
-                      items: ['Masculino', 'Feminino'].map((String value) {
+                      items: controller.sexList.map((String value) {
                         return DropdownMenuItem(
                           value: value,
                           child: Text(value),
@@ -384,7 +268,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                     ),
                     DropdownButtonFormField(
                       // hint: Text('Selecionar'),
-                      value: _dropdownValueDiabetes,
+                      value: controller.diabetes,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderSide: BorderSide.none,
@@ -397,13 +281,9 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                       ),
                       icon: Icon(Icons.keyboard_arrow_down),
                       onChanged: (String? value) {
-                        _isFieldFilled['diabetes'] = value?.isNotEmpty ?? false;
-                        setState(() {
-                          _dropdownValueDiabetes = value!;
-                        });
+                        controller.diabetes = value!;
                       },
-                      items: ['Tipo 1', 'Tipo 2', 'Não tenho diabetes']
-                          .map((String value) {
+                      items: controller.diabetesList.map((String value) {
                         return DropdownMenuItem(
                           value: value,
                           child: Text(value),
@@ -414,73 +294,50 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                 ),
                 Padding(padding: EdgeInsets.all(30)),
                 ValueListenableBuilder<bool>(
-                  valueListenable: _validFormVN,
+                  valueListenable: controller.validFormVN,
                   builder: (_, isValid, child) {
                     return Column(
                       children: [
                         AsyncButtonBuilder(
-                            child: const Text(
-                              'Concluir',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            loadingWidget: CircularProgressIndicator(
-                              color: CustomColors.notwhite,
-                              strokeWidth: 3.0,
-                            ),
-                            onPressed: !isValid
-                                ? null
-                                : () async {
-                                    _validationMode = AutovalidateMode.always;
-                                    _validFormVN.value =
-                                        _formKey.currentState?.validate() ??
-                                            false;
-                                    if (_validFormVN.value) {
-                                      if (await API.instance.createUserProfile(
-                                          DateFormat.yMd('pt_BR')
-                                              .parseStrict(_birthdate.text),
-                                          double.parse(_weight.text
-                                              .replaceAll(',', '.')),
-                                          double.parse(_height.text
-                                              .replaceAll(',', '.')),
-                                          _dropdownValueSex! == 'Masculino'
-                                              ? 'M'
-                                              : 'F',
-                                          _dropdownValueDiabetes! == 'Tipo 1'
-                                              ? 'T1'
-                                              : _dropdownValueDiabetes! ==
-                                                      'Tipo 2'
-                                                  ? 'T2'
-                                                  : 'NP',
-                                          _profile_pic_path ?? '')) {
-                                        //temporário
-                                        await API.instance
-                                            .updateDBUserProfile();
-                                        //
-                                        await Navigator.popAndPushNamed(
-                                            context, '/home');
-                                      }
-                                    }
-                                  },
-                            builder: (context, child, callback, _) {
-                              return TextButton(
-                                style: TextButton.styleFrom(
-                                  primary: Colors.white,
-                                  backgroundColor: isValid
-                                      ? CustomColors.lightGreen
-                                      : Colors.grey,
-                                  padding: EdgeInsets.all(10.0),
-                                  minimumSize: Size.fromHeight(60),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
+                          loadingWidget: CircularProgressIndicator(
+                            color: CustomColors.notwhite,
+                            strokeWidth: 3.0,
+                          ),
+                          onPressed: !isValid
+                              ? null
+                              : () async {
+                                  if (await controller.executeCreate()) {
+                                    await Navigator.popAndPushNamed(
+                                        context, '/home');
+                                  } else {
+                                    throw 'create profile error';
+                                  }
+                                },
+                          builder: (context, child, callback, _) {
+                            return TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: isValid
+                                    ? CustomColors.lightGreen
+                                    : Colors.grey,
+                                padding: EdgeInsets.all(10.0),
+                                minimumSize: Size.fromHeight(60),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                onPressed: callback,
-                                child: child,
-                              );
-                            }),
+                              ),
+                              onPressed: callback,
+                              child: child,
+                            );
+                          },
+                          child: const Text(
+                            'Concluir',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                         Visibility(
                           visible: !isValid,
                           child: Container(
