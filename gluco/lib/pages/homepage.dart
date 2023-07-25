@@ -16,6 +16,7 @@ import 'package:gluco/widgets/iconcard.dart';
 import 'package:gluco/widgets/sidebar.dart';
 import 'package:intl/intl.dart';
 import 'package:gluco/app_icons.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class HomePage extends StatefulWidget {
   bool offline;
@@ -39,8 +40,8 @@ class _HomePageState extends State<HomePage> {
             context: context,
             builder: (context) {
               return AlertDialog(
-                title: Text('Sem conexão'),
-                content: Text('Sem Internet os recursos serão limitados'),
+                title: Text(context.loc.generic_error_no_connection),
+                content: Text(context.loc.homepage_view_no_connection),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
@@ -49,7 +50,7 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text('OK'),
+                    child: Text(context.loc.ok),
                   )
                 ],
               );
@@ -75,7 +76,7 @@ class _HomePageState extends State<HomePage> {
     IconCard glucoseCard = IconCard(
       icon: Icon(AppIcons.molecula, color: Colors.white, size: 32),
       label: Text(
-        'Glicose',
+        context.loc.glucose,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 20.0,
@@ -92,14 +93,14 @@ class _HomePageState extends State<HomePage> {
                 fontWeight: FontWeight.bold,
               ),
             )
-          : Text('Sem dados'),
+          : Text(context.loc.no_data),
       color: CustomColors.lightBlue.withOpacity(1.0),
       size: heightSize,
     );
     IconCard spo2Card = IconCard(
       icon: Icon(Icons.air, color: Colors.white),
       label: Text(
-        'Saturação de Oxigênio',
+        context.loc.oxygen_saturation,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 16.0,
@@ -115,14 +116,14 @@ class _HomePageState extends State<HomePage> {
                 fontWeight: FontWeight.bold,
               ),
             )
-          : Text('Sem dados'),
+          : Text(context.loc.no_data),
       color: CustomColors.lightGreen.withOpacity(1.0),
       size: heightSize,
     );
     IconCard rpmCard = IconCard(
       icon: Icon(Icons.favorite, color: Colors.white),
       label: Text(
-        'Frequência Cardíaca',
+        context.loc.heart_rate,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 16.0,
@@ -138,7 +139,7 @@ class _HomePageState extends State<HomePage> {
                 fontWeight: FontWeight.bold,
               ),
             )
-          : Text('Sem dados'),
+          : Text(context.loc.no_data),
       color: CustomColors.greenBlue.withOpacity(1.0),
       size: heightSize,
     );
@@ -166,7 +167,7 @@ class _HomePageState extends State<HomePage> {
                     textAlign: TextAlign.center,
                     text: TextSpan(
                       text:
-                          'Última medição: ${MediaQuery.of(context).orientation == Orientation.portrait ? '\n' : ' '}',
+                          '${context.loc.homepage_view_last_measurement} : ${MediaQuery.of(context).orientation == Orientation.portrait ? '\n' : ' '}',
                       style: TextStyle(
                         color: Colors.grey[700],
                         fontSize: 16.0,
@@ -177,7 +178,7 @@ class _HomePageState extends State<HomePage> {
                               ? DateFormat('d MMM, E. H:mm', 'pt_BR')
                                   .format(HistoryVO.currentMeasurement.date)
                                   .toUpperCase()
-                              : 'Sem dados',
+                              : context.loc.no_data,
                           style: TextStyle(
                             color: Colors.grey[700],
                             fontSize: 16.0,
@@ -246,7 +247,7 @@ class _HomePageState extends State<HomePage> {
                           builder: (context) {
                             return AlertDialog(
                                 title: Text(
-                                    'Ocorreu um erro na coleta dos dados do dispositivo Bluetooth...'),
+                                    context.loc.homepage_error_bluetooth),
                                 content: SingleChildScrollView(
                                     child: Column(children: [
                                   Text(
@@ -260,11 +261,11 @@ class _HomePageState extends State<HomePage> {
                                     onPressed: (() {
                                       Navigator.pop(context);
                                     }),
-                                    child: Text('Retornar'),
+                                    child: Text(context.loc.return_p),
                                   )
                                 ]);
                           });
-                      throw 'Erro na coleta da medição'; // pro async_button mostrar ícone certo
+                      throw context.loc.homepage_error_measurement; // pro async_button mostrar ícone certo
                     }
                     bool response = false;
                     await showDialog(
@@ -274,7 +275,7 @@ class _HomePageState extends State<HomePage> {
                           TextEditingController controller =
                               TextEditingController();
                           return AlertDialog(
-                              title: Text('Insira o valor da glicose:'),
+                              title: Text(context.loc.homepage_prompt_glucose_measurement),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
@@ -309,7 +310,7 @@ class _HomePageState extends State<HomePage> {
                                         try {
                                           double.parse(value!);
                                         } catch (e) {
-                                          message = 'Insira um valor decimal.';
+                                          message = context.loc.homepage_prompt_decimal_value;
                                         }
                                         return message;
                                       },
@@ -328,7 +329,7 @@ class _HomePageState extends State<HomePage> {
                                         builder: (contextSD2r) {
                                           return AlertDialog(
                                             title: Text(
-                                                'Certeza que deseja cancelar?'),
+                                                context.loc.generic_dialog_cancel),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(10.0),
@@ -357,7 +358,7 @@ class _HomePageState extends State<HomePage> {
                                                   Navigator.pop(contextSD2r);
                                                 },
                                                 child: Text(
-                                                  'Continuar medição',
+                                                  context.loc.homepage_prompt_continue_measurement,
                                                   style: TextStyle(
                                                     color: Colors.white,
                                                   ),
@@ -368,7 +369,7 @@ class _HomePageState extends State<HomePage> {
                                         });
                                   },
                                   child: Text(
-                                    'Cancelar',
+                                    context.loc.cancel,
                                     style: TextStyle(color: Colors.grey),
                                   ),
                                 ),
@@ -376,7 +377,7 @@ class _HomePageState extends State<HomePage> {
                                   style: TextButton.styleFrom(
                                       backgroundColor: CustomColors.lightGreen),
                                   child: Text(
-                                    'Enviar',
+                                    context.loc.send,
                                     style: TextStyle(
                                       color: Colors.white,
                                     ),
@@ -394,13 +395,13 @@ class _HomePageState extends State<HomePage> {
                                       context: contextSD1,
                                       builder: (contextSD2) {
                                         return AlertDialog(
-                                            title: Text('Confira os dados!'),
+                                            title: Text(context.loc.homepage_prompt_confirm_data),
                                             content: Text(
 
                                                 // ALT
                                                 // '''Paciente: $_dropdownValue\n
                                                 // '''
-                                                'Glicose: ${measurement.apparent_glucose}'),
+                                                '${context.loc.glucose} : ${measurement.apparent_glucose}'),
                                             // '''),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
@@ -421,7 +422,7 @@ class _HomePageState extends State<HomePage> {
                                                 onPressed: () async {
                                                   response = await API.instance
                                                       .postMeasurements(
-                                                          measurement, 'Eu');
+                                                          measurement, context.loc.me);
                                                   // _dropdownValue!); // ALT
                                                   if (!response) {
                                                     DatabaseHelper.instance
@@ -438,8 +439,8 @@ class _HomePageState extends State<HomePage> {
                                                       builder: (contextSD3) {
                                                         return AlertDialog(
                                                             title: Text(response
-                                                                ? 'Medição enviada com sucesso'
-                                                                : 'Ocorreu um erro no envio dos dados coletados, eles serão armazenados até que seja possível enviar...'),
+                                                                ? context.loc.homepage_prompt_measurement_sent
+                                                                : context.loc.homepage_error_measurement_not_sent),
                                                             // ALT
                                                             content:
                                                                 // response
@@ -474,7 +475,7 @@ class _HomePageState extends State<HomePage> {
                                                                 }),
                                                                 child: Text(response
                                                                     ? 'Ok!'
-                                                                    : 'Retornar'),
+                                                                    : context.loc.return_p ),
                                                               )
                                                             ]);
                                                       });
@@ -491,7 +492,7 @@ class _HomePageState extends State<HomePage> {
                                                   );
                                                 },
                                                 child: Text(
-                                                  'Confirmar',
+                                                  context.loc.confirm,
                                                   style: TextStyle(
                                                     color: Colors.white,
                                                   ),
@@ -507,7 +508,7 @@ class _HomePageState extends State<HomePage> {
                     _isPacientSelected = false;
                     _dropdownValue = null;
                     if (!response) {
-                      throw 'Envio da medição cancelada'; // pro async_button mostrar ícone certo
+                      throw context.loc.homepage_prompt_measurement_canceled; // pro async_button mostrar ícone certo
                     }
                     /////////////////// futuro
                     // MeasurementCompleted measurement = await API.instance.getMeasurement();
@@ -540,15 +541,15 @@ class _HomePageState extends State<HomePage> {
                           context: context,
                           builder: (context) {
                             return AlertDialog(
-                              title: Text('Dispositivo não conectado'),
+                              title: Text(context.loc.homepage_error_device_not_connected),
                               content: Text(
-                                  'Escolha um dispositivo para conectar na página de dispositivos...'),
+                                  context.loc.homepage_prompt_connect_device),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
                               actions: [
                                 TextButton(
-                                  child: Text('Ir à página de dispositivos'),
+                                  child: Text(context.loc.homepage_prompt_go_to_devicepage),
                                   onPressed: () async {
                                     await Navigator.popAndPushNamed(
                                       context,
@@ -576,7 +577,7 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                   child: Text(
-                    'Medir',
+                    context.loc.measure,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22.0,

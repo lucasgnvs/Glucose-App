@@ -16,13 +16,16 @@ import 'package:gluco/services/api.dart';
 import 'package:gluco/services/btletest.dart';
 import 'package:gluco/styles/customcolors.dart';
 import 'package:gluco/views/historyvo.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 String _defaultHome = '/login';
 bool offline = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('pt_BR', null);
+  
+
 
   if (await API.instance.login()) {
     switch (API.instance.responseMessage) {
@@ -41,10 +44,12 @@ void main() async {
     }
   }
 
+
   BluetoothHelper.instance.autoConnect();
 
   runApp(
     MaterialApp(
+      
       home: Main(),
     ),
   );
@@ -98,6 +103,10 @@ class MainState extends State<Main> {
         '/teste': (context) => FlutterBlueApp(),
         // '/teste': (context) => DBTest(),
       },
+
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales:  AppLocalizations.supportedLocales,
+
     );
   }
 }

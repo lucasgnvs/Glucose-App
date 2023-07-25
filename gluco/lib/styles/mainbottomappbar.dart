@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:gluco/styles/customcolors.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 enum MainBottomAppBar { home, history }
 
@@ -27,7 +28,7 @@ BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    'Medir',
+                    context.loc.measure,
                     style: TextStyle(
                       color: page == MainBottomAppBar.home
                           ? CustomColors.lightBlue.withOpacity(1.0)
@@ -62,7 +63,7 @@ BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    'Histórico',
+                    context.loc.historic,
                     style: TextStyle(
                       color: page == MainBottomAppBar.history
                           ? CustomColors.lightBlue.withOpacity(1.0)

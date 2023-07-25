@@ -5,6 +5,7 @@ import 'package:gluco/services/api.dart';
 import 'package:gluco/styles/customcolors.dart';
 import 'package:gluco/views/historyvo.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class SideBar extends StatefulWidget {
   SideBar();
@@ -44,7 +45,7 @@ class _SideBarState extends State<SideBar> {
           ListTile(
             leading: Icon(Icons.person),
             title: Text(
-              'Meu Perfil',
+              context.loc.my_profile,
               style: Theme.of(context).textTheme.headline6,
             ),
             onTap: () async {
@@ -54,7 +55,7 @@ class _SideBarState extends State<SideBar> {
           ListTile(
             leading: Icon(Icons.watch_outlined),
             title: Text(
-              'Dispositivos',
+              context.loc.devices,
               style: Theme.of(context).textTheme.headline6,
             ),
             onTap: () async {
@@ -74,7 +75,7 @@ class _SideBarState extends State<SideBar> {
           ListTile(
             leading: Icon(Icons.info_outline),
             title: Text(
-              'Sobre nós',
+              context.loc.about_us,
               style: Theme.of(context).textTheme.headline6,
             ),
             trailing: Icon(Icons.open_in_new),
@@ -87,7 +88,7 @@ class _SideBarState extends State<SideBar> {
             child: ListTile(
               leading: Icon(Icons.logout),
               title: Text(
-                "Sair",
+                context.loc.log_out,
                 style: Theme.of(context).textTheme.headline6,
               ),
               onTap: () async {

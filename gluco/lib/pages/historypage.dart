@@ -7,6 +7,7 @@ import 'package:gluco/styles/defaultappbar.dart';
 import 'package:gluco/views/historyvo.dart';
 import 'package:gluco/app_icons.dart';
 import 'package:intl/intl.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class HistoryPage extends StatefulWidget {
   HistoryPage();
@@ -41,7 +42,7 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
       ),
       child: Scaffold(
-        appBar: defaultAppBar(title: 'Histórico de Medições'),
+        appBar: defaultAppBar(title: context.loc.historypage_measurement_history),
         bottomNavigationBar:
             mainBottomAppBar(context, MainBottomAppBar.history),
         body: Container(
@@ -56,7 +57,7 @@ class _HistoryPageState extends State<HistoryPage> {
           child: _monthsMap.isEmpty
               ? Center(
                   child: Text(
-                    'Não há medições recentes',
+                    context.loc.historypage_view_measurements,
                     style: Theme.of(context).textTheme.headline6,
                   ),
                 )
@@ -146,7 +147,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                         headerBuilder: ((context, isExpanded) {
                                           return ListTile(
                                               title: Text(
-                                                'Glicose',
+                                                context.loc.glucose,
                                                 style: TextStyle(
                                                     fontStyle:
                                                         FontStyle.italic),
@@ -168,7 +169,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                           children: [
                                             ListTile(
                                               title: Text(
-                                                'Saturação de oxigênio',
+                                                context.loc.oxygen_saturation,
                                                 style: TextStyle(
                                                     fontStyle:
                                                         FontStyle.italic),
@@ -186,7 +187,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                             ),
                                             ListTile(
                                               title: Text(
-                                                'Frequência cardíaca',
+                                                context.loc.heart_rate,
                                                 style: TextStyle(
                                                     fontStyle:
                                                         FontStyle.italic),

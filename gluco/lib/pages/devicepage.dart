@@ -6,6 +6,7 @@ import 'package:gluco/models/device.dart';
 import 'package:gluco/services/bluetoothhelper.dart';
 import 'package:gluco/styles/customcolors.dart';
 import 'package:gluco/styles/defaultappbar.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class DevicePage extends StatefulWidget {
   DevicePage();
@@ -67,7 +68,7 @@ class _DevicePageState extends State<DevicePage> {
       ),
       child: Scaffold(
         appBar: defaultAppBar(
-          title: 'Conexão com Relógio',
+          title: context.loc.devicepage_prompt_watch_connection,
           trailing: [
             Padding(
               padding: EdgeInsets.all(15.0),
@@ -89,7 +90,7 @@ class _DevicePageState extends State<DevicePage> {
                       padding:
                           EdgeInsets.only(left: 20.0, top: 5.0, bottom: 10.0),
                       child: Text(
-                        'Dispositivos Disponíveis',
+                        context.loc.devicepage_prompt_available_devices,
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -113,7 +114,7 @@ class _DevicePageState extends State<DevicePage> {
                       return Center(
                         // se ligar e desligar o bluetooth pode ocorrer DeadObjectException
                         child: Text(
-                          'O Bluetooth está desabilitado...',
+                          context.loc.devicepage_error_bluetooth_off,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.headline6,
                         ),
@@ -137,7 +138,7 @@ class _DevicePageState extends State<DevicePage> {
                                       padding:
                                           EdgeInsets.symmetric(horizontal: 20),
                                       child: Text(
-                                        'Nenhum dispositivo Bluetooth encontrado...',
+                                        context.loc.devicepage_error_device_not_found,
                                         textAlign: TextAlign.center,
                                         style: Theme.of(context)
                                             .textTheme
@@ -167,8 +168,8 @@ class _DevicePageState extends State<DevicePage> {
                                             subtitle: Text(
                                                 devices[i].connected &&
                                                         snapshot.data!
-                                                    ? 'Conectado'
-                                                    : 'Não conectado',
+                                                    ? context.loc.connected
+                                                    : context.loc.not_connected,
                                                 style: TextStyle(
                                                     color:
                                                         devices[i].connected &&
@@ -216,8 +217,8 @@ class _DevicePageState extends State<DevicePage> {
                                                                     TextSpan(
                                                                       text: devices[i].connected &&
                                                                               snapshot.data!
-                                                                          ? '\nConectado'
-                                                                          : '\nNão conectado',
+                                                                          ? '\n${context.loc.connected}'
+                                                                          : '\n${context.loc.not_connected}',
                                                                       style:
                                                                           TextStyle(
                                                                         fontSize:

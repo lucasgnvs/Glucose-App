@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/styles/customcolors.dart';
 import 'package:gluco/styles/customclippers.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage();
@@ -127,7 +128,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           // OPCOES USUARIO COMUM E MEDICO
                           RadioListTile<AccountType>(
                             title: Text(
-                              'Usuário Comum',
+                              context.loc.normal_user,
                               style: TextStyle(
                                   color: _normalUser
                                       ? CustomColors.lightBlue
@@ -146,7 +147,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           RadioListTile<AccountType>(
                             title: Text(
-                              'Médico',
+                              context.loc.doctor,
                               style: TextStyle(
                                   color: _normalUser
                                       ? Colors.blueGrey
@@ -167,7 +168,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             controller: _name,
                             decoration: InputDecoration(
                               label: Text(
-                                'Nome Completo',
+                                context.loc.full_name,
                                 style: TextStyle(color: CustomColors.lightBlue),
                               ),
                               enabledBorder: UnderlineInputBorder(
@@ -184,15 +185,15 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                             ),
                             onChanged: (text) {
-                              _isFieldFilled['name'] = text.isNotEmpty;
+                              _isFieldFilled[context.loc.name] = text.isNotEmpty;
                             },
                             validator: (text) {
                               if (text == null || text.isEmpty) {
-                                return '*Campo obrigatório';
+                                return context.loc.generic_error_required_field;
                               }
                               if (!RegExp(r"^[\p{Letter}'\- ]+$", unicode: true)
                                   .hasMatch(text)) {
-                                return '*Insira um nome válido';
+                                return context.loc.register_error_invalid_name;
                               }
                               return null;
                             },
@@ -206,7 +207,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             controller: _email,
                             decoration: InputDecoration(
                               label: Text(
-                                'E-mail',
+                                context.loc.email,
                                 style: TextStyle(color: CustomColors.blueGreen),
                               ),
                               enabledBorder: UnderlineInputBorder(
@@ -223,21 +224,21 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                             ),
                             onChanged: (text) {
-                              _isFieldFilled['email'] = text.isNotEmpty;
+                              _isFieldFilled[context.loc.email] = text.isNotEmpty;
                               _emailAlreadyInUse = false;
                             },
                             validator: (text) {
                               if (text == null || text.isEmpty) {
-                                return '*Campo obrigatório';
+                                return context.loc.generic_error_required_field;
                               }
                               if (_emailAlreadyInUse) {
-                                return '*Você já possui uma conta nesse e-mail';
+                                return context.loc.register_error_email_already_in_use;
                               }
                               if (!RegExp(
                                       r"^[a-zA-Z0-9\.]+@[a-zA-Z]+(\.[a-zA-Z]+)+$",
                                       unicode: true)
                                   .hasMatch(text)) {
-                                return '*Insira um e-mail válido';
+                                return context.loc.register_error_invalid_email;
                               }
                               return null;
                             },
@@ -276,11 +277,11 @@ class _SignUpPageState extends State<SignUpPage> {
                                     },
                                     validator: (text) {
                                       if (text == null || text.isEmpty) {
-                                        return '*Campo obrigatório';
+                                        return context.loc.generic_error_required_field;
                                       }
                                       //validar CRM aqui
                                       if (text.length != 6) {
-                                        return '*O CRM deve conter 6 digitos';
+                                        return context.loc.register_error_invalid_crm;
                                       }
                                       return null;
                                     },
@@ -299,7 +300,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             controller: _password,
                             decoration: InputDecoration(
                               label: Text(
-                                'Senha',
+                                context.loc.password,
                                 style:
                                     TextStyle(color: CustomColors.lightGreen),
                               ),
@@ -327,14 +328,14 @@ class _SignUpPageState extends State<SignUpPage> {
                                   color: CustomColors.lightGreen),
                             ),
                             onChanged: (text) {
-                              _isFieldFilled['password'] = text.isNotEmpty;
+                              _isFieldFilled[context.loc.password] = text.isNotEmpty;
                             },
                             validator: (text) {
                               if (text == null || text.isEmpty) {
-                                return '*Campo obrigatório';
+                                return context.loc.generic_error_required_field;
                               }
                               if (text.length < 6) {
-                                return '*A senha deve conter no mínimo 6 digitos';
+                                return context.loc.register_error_weak_password;
                               }
                               return null;
                             },
@@ -357,14 +358,14 @@ class _SignUpPageState extends State<SignUpPage> {
                                       alignment: Alignment.bottomRight,
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        '*Preencha todos os campos',
+                                        context.loc.generic_error_unfilled_fields,
                                         style: TextStyle(color: Colors.grey),
                                       ),
                                     ),
                                   ),
                                   AsyncButtonBuilder(
                                     child: Text(
-                                      'Concluir Cadastro',
+                                      context.loc.register_view_button,
                                       style: TextStyle(
                                         color: CustomColors.notwhite,
                                         // a cor tá errada, aparecendo cinza por algum motivo (por estar desabilitado será?)
@@ -478,7 +479,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               Padding(
                                 padding: EdgeInsets.all(15),
                                 child: Text(
-                                  'OU',
+                                  context.loc.or,
                                   style: TextStyle(
                                     color: CustomColors.lightGreen,
                                     fontSize: 12.0,
@@ -501,7 +502,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ],
                           ),
                           TextButton(
-                            child: const Text('Eu já tenho uma conta'),
+                            child: Text(context.loc.register_view_already_registered),
                             style: TextButton.styleFrom(
                               textStyle: TextStyle(
                                 fontSize: 16.0,

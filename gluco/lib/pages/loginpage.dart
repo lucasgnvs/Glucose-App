@@ -1,11 +1,12 @@
 // ignore_for_file: must_be_immutable, prefer_const_constructors, use_key_in_widget_constructors
 
-import 'package:async_button_builder/async_button_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:async_button_builder/async_button_builder.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/styles/customcolors.dart';
 import 'package:gluco/styles/customclippers.dart';
 import 'package:gluco/views/historyvo.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage();
@@ -95,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _email,
                           decoration: InputDecoration(
                             label: Text(
-                              'E-mail',
+                              context.loc.email,
                               style: TextStyle(color: CustomColors.lightGreen),
                             ),
                             enabledBorder: UnderlineInputBorder(
@@ -114,10 +115,10 @@ class _LoginPageState extends State<LoginPage> {
                           autovalidateMode: AutovalidateMode.always,
                           validator: (text) {
                             if (_nonexistentEmail) {
-                              return '*Não há conta nesse e-mail';
+                              return  context.loc.login_error_cannot_find_user;
                             }
                             if (_invalidEmail) {
-                              return '*E-mail inválido';
+                              return context.loc.login_error_wrong_credentials;
                             }
                             return null;
                           },
@@ -130,7 +131,7 @@ class _LoginPageState extends State<LoginPage> {
                           obscureText: _hidePassword,
                           decoration: InputDecoration(
                             label: Text(
-                              'Senha',
+                              context.loc.password,
                               style: TextStyle(color: CustomColors.greenBlue),
                             ),
                             enabledBorder: UnderlineInputBorder(
@@ -161,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
                           autovalidateMode: AutovalidateMode.always,
                           validator: (text) {
                             if (_invalidPassword) {
-                              return '*Senha inválida';
+                              return context.loc.login_error_wrong_password;
                             }
                             return null;
                           },
@@ -185,7 +186,7 @@ class _LoginPageState extends State<LoginPage> {
                         Padding(padding: EdgeInsets.all(30.0)),
                         AsyncButtonBuilder(
                           child: Text(
-                            'Entrar',
+                            context.loc.login,
                             style: TextStyle(
                               fontSize: 16.0,
                               fontWeight: FontWeight.normal,
@@ -246,15 +247,15 @@ class _LoginPageState extends State<LoginPage> {
                                     context: context,
                                     builder: (context) {
                                       return AlertDialog(
-                                        title: Text('Sem conexão'),
+                                        title: Text(context.loc.no_connection),
                                         content: Text(
-                                            'Verifique sua conexão à Internet'),
+                                            context.loc.generic_error_no_connection),
                                         actions: [
                                           TextButton(
                                             onPressed: () {
                                               Navigator.pop(context);
                                             },
-                                            child: Text('OK'),
+                                            child: Text(context.loc.ok),
                                           )
                                         ],
                                       );
@@ -263,13 +264,13 @@ class _LoginPageState extends State<LoginPage> {
                                   break;
                               }
                               // só pro botão dar a mensagem certa, não sabia outra forma de fazer
-                              throw 'Erro no login';
+                              throw 'Erro';
                             }
                           },
                           builder: (context, child, callback, _) {
                             return TextButton(
                               style: TextButton.styleFrom(
-                                primary: CustomColors.notwhite,
+                                foregroundColor: CustomColors.notwhite,
                                 backgroundColor: CustomColors.lightBlue,
                                 padding: EdgeInsets.all(10.0),
                                 minimumSize:
@@ -325,12 +326,12 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                         TextButton(
-                          child: const Text('Cadastrar'),
+                          child:  Text(context.loc.register),
                           style: TextButton.styleFrom(
                             textStyle: TextStyle(
                               fontSize: 16.0,
                             ),
-                            primary: CustomColors.blueGreen,
+                            foregroundColor: CustomColors.blueGreen,
                             backgroundColor: CustomColors.notwhite,
                             padding: EdgeInsets.all(10.0),
                             minimumSize: Size(viewportConstraints.maxWidth, 60),
