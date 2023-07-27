@@ -33,39 +33,13 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     btConn = BluetoothHelper.instance.connected;
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
-        if (widget.offline && widget.popup) {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text(context.loc.generic_error_no_connection),
-                content: Text(context.loc.homepage_view_no_connection),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(context.loc.ok),
-                  )
-                ],
-              );
-            },
-          );
-          widget.popup = false;
-        }
-      },
-    );
+    WidgetsBinding.instance
+        .addPostFrameCallback(_dialogNoConnection(context, widget));
     super.initState();
   }
 
   bool _isPacientSelected = false;
   String? _dropdownValue;
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -241,274 +215,17 @@ class _HomePageState extends State<HomePage> {
                     try {
                       measurement = await BluetoothHelper.instance.collect();
                     } catch (e) {
-                      await showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                                title: Text(
-                                    context.loc.homepage_error_bluetooth),
-                                content: SingleChildScrollView(
-                                    child: Column(children: [
-                                  Text(
-                                      '${BluetoothHelper.instance.valuesError}')
-                                ])),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: (() {
-                                      Navigator.pop(context);
-                                    }),
-                                    child: Text(context.loc.return_p),
-                                  )
-                                ]);
-                          });
-                      throw context.loc.homepage_error_measurement; // pro async_button mostrar ícone certo
+                      await _dialogErrorBluetooth(context);
+                      throw context.loc
+                          .homepage_error_measurement; // pro async_button mostrar ícone certo
                     }
                     bool response = false;
-                    await showDialog(
-                        barrierDismissible: false,
-                        context: context,
-                        builder: (contextSD1) {
-                          TextEditingController controller =
-                              TextEditingController();
-                          return AlertDialog(
-                              title: Text(context.loc.homepage_prompt_glucose_measurement),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              content: Form(
-                                key: _formKey,
-                                autovalidateMode: AutovalidateMode.always,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // ALT
-                                    // DropdownButtonFormField(
-                                    //     value: _dropdownValue,
-                                    //     icon: Icon(Icons.keyboard_arrow_down),
-                                    //     onChanged: (String? value) {
-                                    //       _isPacientSelected =
-                                    //           value?.isNotEmpty ?? false;
-                                    //       setState(() {
-                                    //         _dropdownValue = value!;
-                                    //       });
-                                    //     },
-                                    //     items: API.instance.pacientList
-                                    //         .map((String value) {
-                                    //       return DropdownMenuItem(
-                                    //         value: value,
-                                    //         child: Text(value),
-                                    //       );
-                                    //     }).toList()),
-                                    TextFormField(
-                                      controller: controller,
-                                      validator: (value) {
-                                        String? message;
-                                        try {
-                                          double.parse(value!);
-                                        } catch (e) {
-                                          message = context.loc.homepage_prompt_decimal_value;
-                                        }
-                                        return message;
-                                      },
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    showDialog(
-                                        barrierDismissible: false,
-                                        barrierColor: Colors.transparent,
-                                        context: contextSD1,
-                                        builder: (contextSD2r) {
-                                          return AlertDialog(
-                                            title: Text(
-                                                context.loc.generic_dialog_cancel),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10.0),
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                style: TextButton.styleFrom(
-                                                    backgroundColor:
-                                                        Colors.red[900]),
-                                                onPressed: () {
-                                                  Navigator.pop(contextSD2r);
-                                                  Navigator.pop(contextSD1);
-                                                },
-                                                child: Text(
-                                                  'Cancelar',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                              ),
-                                              TextButton(
-                                                style: TextButton.styleFrom(
-                                                    backgroundColor:
-                                                        CustomColors
-                                                            .lightGreen),
-                                                onPressed: () {
-                                                  Navigator.pop(contextSD2r);
-                                                },
-                                                child: Text(
-                                                  context.loc.homepage_prompt_continue_measurement,
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              )
-                                            ],
-                                          );
-                                        });
-                                  },
-                                  child: Text(
-                                    context.loc.cancel,
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                ),
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                      backgroundColor: CustomColors.lightGreen),
-                                  child: Text(
-                                    context.loc.send,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    if (!(_formKey.currentState?.validate() ??
-                                        false)) {
-                                      throw 'Form inválido';
-                                    }
-                                    measurement.apparent_glucose =
-                                        double.parse(controller.text);
-                                    showDialog(
-                                      barrierDismissible: false,
-                                      barrierColor: Colors.transparent,
-                                      context: contextSD1,
-                                      builder: (contextSD2) {
-                                        return AlertDialog(
-                                            title: Text(context.loc.homepage_prompt_confirm_data),
-                                            content: Text(
-
-                                                // ALT
-                                                // '''Paciente: $_dropdownValue\n
-                                                // '''
-                                                '${context.loc.glucose} : ${measurement.apparent_glucose}'),
-                                            // '''),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10.0),
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(contextSD2);
-                                                },
-                                                child: Text(
-                                                  'Corrigir',
-                                                  style: TextStyle(
-                                                      color: Colors.grey),
-                                                ),
-                                              ),
-                                              AsyncButtonBuilder(
-                                                onPressed: () async {
-                                                  response = await API.instance
-                                                      .postMeasurements(
-                                                          measurement, context.loc.me);
-                                                  // _dropdownValue!); // ALT
-                                                  if (!response) {
-                                                    DatabaseHelper.instance
-                                                        .insertMeasurementCollected(
-                                                            API.instance
-                                                                .currentUser!,
-                                                            measurement);
-                                                  }
-                                                  showDialog(
-                                                      barrierDismissible: false,
-                                                      barrierColor:
-                                                          Colors.transparent,
-                                                      context: contextSD2,
-                                                      builder: (contextSD3) {
-                                                        return AlertDialog(
-                                                            title: Text(response
-                                                                ? context.loc.homepage_prompt_measurement_sent
-                                                                : context.loc.homepage_error_measurement_not_sent),
-                                                            // ALT
-                                                            content:
-                                                                // response
-                                                                //     ?
-                                                                SingleChildScrollView(
-                                                                    child: Column(
-                                                                        children: measurement
-                                                                            .toMap()
-                                                                            .entries
-                                                                            .map((e) => Text(
-                                                                                '${e.key}: ${e.value}'))
-                                                                            .toList()))
-                                                            // : null
-                                                            ,
-                                                            //////////
-                                                            shape:
-                                                                RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10.0),
-                                                            ),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: (() {
-                                                                  Navigator.pop(
-                                                                      contextSD3);
-                                                                  Navigator.pop(
-                                                                      contextSD2);
-                                                                  Navigator.pop(
-                                                                      contextSD1);
-                                                                }),
-                                                                child: Text(response
-                                                                    ? 'Ok!'
-                                                                    : context.loc.return_p ),
-                                                              )
-                                                            ]);
-                                                      });
-                                                },
-                                                builder:
-                                                    (cont, child, callback, _) {
-                                                  return TextButton(
-                                                    style: TextButton.styleFrom(
-                                                        backgroundColor:
-                                                            CustomColors
-                                                                .lightGreen),
-                                                    onPressed: callback,
-                                                    child: child,
-                                                  );
-                                                },
-                                                child: Text(
-                                                  context.loc.confirm,
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              )
-                                            ]);
-                                      },
-                                    );
-                                  },
-                                )
-                              ]);
-                        });
+                    _dialogMeasurement(context, measurement, response);
                     _isPacientSelected = false;
                     _dropdownValue = null;
                     if (!response) {
-                      throw context.loc.homepage_prompt_measurement_canceled; // pro async_button mostrar ícone certo
+                      throw context.loc
+                          .homepage_prompt_measurement_canceled; // pro async_button mostrar ícone certo
                     }
                     /////////////////// futuro
                     // MeasurementCompleted measurement = await API.instance.getMeasurement();
@@ -535,33 +252,7 @@ class _HomePageState extends State<HomePage> {
                     Color color = CustomColors.greenBlue.withOpacity(1.0);
                     if (!snapshot.data!) {
                       color = Colors.grey;
-                      callback = () async {
-                        await showDialog(
-                          useRootNavigator: false,
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text(context.loc.homepage_error_device_not_connected),
-                              content: Text(
-                                  context.loc.homepage_prompt_connect_device),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              actions: [
-                                TextButton(
-                                  child: Text(context.loc.homepage_prompt_go_to_devicepage),
-                                  onPressed: () async {
-                                    await Navigator.popAndPushNamed(
-                                      context,
-                                      '/devices',
-                                    );
-                                  },
-                                )
-                              ],
-                            );
-                          },
-                        );
-                      };
+                      callback = _dialogNoDevice(context);
                     }
                     return TextButton(
                       style: TextButton.styleFrom(
@@ -592,4 +283,326 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
+
+void Function(Duration) _dialogNoConnection(
+    BuildContext context, HomePage widget) {
+  return (_) async {
+    if (widget.offline && widget.popup) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(context.loc.generic_error_no_connection),
+            content: Text(context.loc.homepage_view_no_connection),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(context.loc.ok),
+              )
+            ],
+          );
+        },
+      );
+      widget.popup = false;
+    }
+  };
+}
+
+Future<void> _dialogErrorBluetooth(BuildContext context) async {
+  await showDialog(
+    barrierDismissible: false,
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(context.loc.homepage_error_bluetooth),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [Text('${BluetoothHelper.instance.valuesError}')],
+          ),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        actions: [
+          TextButton(
+            onPressed: (() {
+              Navigator.pop(context);
+            }),
+            child: Text(context.loc.return_p),
+          )
+        ],
+      );
+    },
+  );
+}
+
+Future<void> _dialogMeasurement(BuildContext context,
+    MeasurementCollected measurement, bool response) async {
+  final formKey = GlobalKey<FormState>();
+  await showDialog(
+    barrierDismissible: false,
+    context: context,
+    builder: (contextMeasurement) {
+      TextEditingController controller = TextEditingController();
+      return AlertDialog(
+        title: Text(context.loc.homepage_prompt_glucose_measurement),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        content: Form(
+          key: formKey,
+          autovalidateMode: AutovalidateMode.always,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ALT
+              // DropdownButtonFormField(
+              //     value: _dropdownValue,
+              //     icon: Icon(Icons.keyboard_arrow_down),
+              //     onChanged: (String? value) {
+              //       _isPacientSelected =
+              //           value?.isNotEmpty ?? false;
+              //       setState(() {
+              //         _dropdownValue = value!;
+              //       });
+              //     },
+              //     items: API.instance.pacientList
+              //         .map((String value) {
+              //       return DropdownMenuItem(
+              //         value: value,
+              //         child: Text(value),
+              //       );
+              //     }).toList()),
+              TextFormField(
+                controller: controller,
+                validator: (value) {
+                  String? message;
+                  try {
+                    double.parse(value!);
+                  } catch (e) {
+                    message = context.loc.homepage_prompt_decimal_value;
+                  }
+                  return message;
+                },
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await _dialogConfirmCancel(contextMeasurement);
+            },
+            child: Text(
+              context.loc.cancel,
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          TextButton(
+            style:
+                TextButton.styleFrom(backgroundColor: CustomColors.lightGreen),
+            child: Text(
+              context.loc.send,
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+            onPressed: () async {
+              if (!(formKey.currentState?.validate() ?? false)) {
+                throw 'Form inválido';
+              }
+              measurement.apparent_glucose = double.parse(controller.text);
+              await _dialogConfirmMeasurement(
+                  contextMeasurement, measurement, response);
+            },
+          )
+        ],
+      );
+    },
+  );
+}
+
+Future<void> _dialogConfirmCancel(BuildContext contextMeasurement) async {
+  await showDialog(
+    barrierDismissible: false,
+    barrierColor: Colors.transparent,
+    context: contextMeasurement,
+    builder: (contextCancel) {
+      return AlertDialog(
+        title: Text(contextMeasurement.loc.generic_dialog_cancel),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(backgroundColor: Colors.red[900]),
+            onPressed: () {
+              Navigator.pop(contextCancel);
+              Navigator.pop(contextMeasurement);
+            },
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          TextButton(
+            style:
+                TextButton.styleFrom(backgroundColor: CustomColors.lightGreen),
+            onPressed: () {
+              Navigator.pop(contextCancel);
+            },
+            child: Text(
+              contextMeasurement.loc.homepage_prompt_continue_measurement,
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          )
+        ],
+      );
+    },
+  );
+}
+
+Future<void> _dialogConfirmMeasurement(BuildContext contextMeasurement,
+    MeasurementCollected measurement, bool response) async {
+  showDialog(
+    barrierDismissible: false,
+    barrierColor: Colors.transparent,
+    context: contextMeasurement,
+    builder: (contextConfirm) {
+      return AlertDialog(
+        title: Text(contextMeasurement.loc.homepage_prompt_confirm_data),
+        content: Text(
+
+            // ALT
+            // '''Paciente: $_dropdownValue\n
+            // '''
+            '${contextMeasurement.loc.glucose} : ${measurement.apparent_glucose}'),
+        // '''),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(contextConfirm);
+            },
+            child: Text(
+              'Corrigir',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          AsyncButtonBuilder(
+            onPressed: () async {
+              response = await API.instance
+                  .postMeasurements(measurement, contextMeasurement.loc.me);
+              // _dropdownValue!); // ALT
+              if (!response) {
+                DatabaseHelper.instance.insertMeasurementCollected(
+                    API.instance.currentUser!, measurement);
+              }
+              await _dialogSentMeasurement(
+                  contextMeasurement, contextConfirm, measurement, response);
+            },
+            builder: (cont, child, callback, _) {
+              return TextButton(
+                style: TextButton.styleFrom(
+                    backgroundColor: CustomColors.lightGreen),
+                onPressed: callback,
+                child: child,
+              );
+            },
+            child: Text(
+              contextMeasurement.loc.confirm,
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          )
+        ],
+      );
+    },
+  );
+}
+
+Future<void> _dialogSentMeasurement(
+    BuildContext contextMeasurement,
+    BuildContext contextConfirm,
+    MeasurementCollected measurement,
+    bool response) async {
+  showDialog(
+    barrierDismissible: false,
+    barrierColor: Colors.transparent,
+    context: contextConfirm,
+    builder: (contextSent) {
+      return AlertDialog(
+        title: Text(response
+            ? contextConfirm.loc.homepage_prompt_measurement_sent
+            : contextConfirm.loc.homepage_error_measurement_not_sent),
+        // ALT
+        content:
+            // response
+            //     ?
+            SingleChildScrollView(
+          child: Column(
+            children: measurement
+                .toMap()
+                .entries
+                .map((e) => Text('${e.key}: ${e.value}'))
+                .toList(),
+          ),
+        )
+        // : null
+        ,
+        //////////
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        actions: [
+          TextButton(
+            onPressed: (() {
+              Navigator.pop(contextSent);
+              Navigator.pop(contextConfirm);
+              Navigator.pop(contextMeasurement);
+            }),
+            child: Text(response ? 'Ok!' : contextConfirm.loc.return_p),
+          )
+        ],
+      );
+    },
+  );
+}
+
+Future<void> Function()? _dialogNoDevice(BuildContext context) {
+  return () async {
+    await showDialog(
+      useRootNavigator: false,
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(context.loc.homepage_error_device_not_connected),
+          content: Text(context.loc.homepage_prompt_connect_device),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          actions: [
+            TextButton(
+              child: Text(context.loc.homepage_prompt_go_to_devicepage),
+              onPressed: () async {
+                await Navigator.popAndPushNamed(context, '/devices');
+              },
+            )
+          ],
+        );
+      },
+    );
+  };
 }

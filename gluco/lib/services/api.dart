@@ -2,12 +2,13 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:http/http.dart';
 import 'package:gluco/db/databasehelper.dart';
 import 'package:gluco/models/measurement.dart';
 import 'package:gluco/models/requests.dart';
 import 'package:gluco/models/user.dart';
+import 'package:gluco/services/customlog.dart';
 
 /// API para comunicação com o servidor
 class API {
@@ -79,24 +80,17 @@ class API {
     if (response.statusCode == 200) {
       TokenResponseModel responseModel =
           TokenResponseModel.fromMap(responseBody);
-      //
-      print('--- Refresh --- \n' + response.body + '\n--- Refresh --- \n');
-      //
       _token = responseModel.token;
       _refresh_token = responseModel.refresh_token;
       _responseMessage = APIResponseMessages.success;
+      log.i('--- Refresh token');
       return true;
     } else {
-      //
-      print('--- Refresh --- \n' +
-          response.body +
-          '\n' +
-          (response.reasonPhrase ?? '') +
-          '\n--- Refresh --- \n');
-      //
       _responseMessage = responseBody['detail'];
+      log.w(
+          '--- Refresh token :: ${response.reasonPhrase} :: $_responseMessage');
     }
-
+    // lançar exceção para logout?
     return false;
   }
 
@@ -120,7 +114,6 @@ class API {
           //
           await updateDBUserProfile();
         }
-        _autoRefresh();
         await DatabaseHelper.instance
             .insertCredentials(_client_id!, _refresh_token!);
         // ### verificação se banco possui medições não enviadas
@@ -131,13 +124,13 @@ class API {
           await _fetchDBCredentials(false) &&
           await _fetchDBUserProfile()) {
         // ### apiresponsemessage de modo offline
-        print('--- login :: not connected, offline mode');
+        log.i('--- Login :: not connected, offline mode');
         _responseMessage = APIResponseMessages.offlineMode;
         return true;
       }
       // ### apiresponsemessage sem conexao
       _responseMessage = APIResponseMessages.noConnection;
-      print('--- login :: not connected, no profile');
+      log.i('--- Login :: not connected, no profile');
     }
 
     return false;
@@ -163,21 +156,6 @@ class API {
     return true;
   }
 
-  @Deprecated('ter que ficar logando a cada 10 min tava me irritando')
-  void _autoRefresh() async {
-    Timer.periodic(const Duration(minutes: 8), (timer) {
-      _autoSave();
-    });
-  }
-
-  @Deprecated('a função do timer do autorefresh não podia ser async')
-  void _autoSave() async {
-    if (await _refreshToken()) {
-      await DatabaseHelper.instance
-          .insertCredentials(_client_id!, _refresh_token!);
-    }
-  }
-
   /// Requisição para autenticação do usuário
   Future<bool> _login(String email, String password) async {
     Uri url = Uri.https(_authority, '/login');
@@ -199,23 +177,19 @@ class API {
     if (response.statusCode == 200) {
       LoginResponseModel responseModel =
           LoginResponseModel.fromMap(responseBody);
-      //
-      print('--- Login --- \n' + response.body + '\n--- Login --- \n');
-      //
       _client_id = responseModel.client_id;
       _token = responseModel.token;
       _refresh_token = responseModel.refresh_token;
       _responseMessage = APIResponseMessages.success;
+      log.i('--- Login :: $_responseMessage');
       return true;
     } else {
-      //
-      print("-reasonphrase: " + (response.reasonPhrase ?? ''));
-      //
       try {
         _responseMessage = responseBody['detail'];
       } catch (e) {
         _responseMessage = responseBody['detail'][0]['msg'];
       }
+      log.w('--- Login :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
     return false;
@@ -229,6 +203,7 @@ class API {
     _client_id = null;
     _token = null;
     _refresh_token = null;
+    log.i('--- Logout');
     return await DatabaseHelper.instance.deleteCredentials(client_id);
   }
 
@@ -251,16 +226,12 @@ class API {
         jsonDecode(utf8.decode(response.bodyBytes));
 
     if (response.statusCode == 200) {
-      //
-      print('--- Signup --- \n' + response.body + '\n--- Signup --- \n');
-      //
       _responseMessage = responseBody['status'];
+      log.i('--- Signup $_responseMessage');
       return true;
     } else {
-      //
-      print(response.reasonPhrase);
-      //
       _responseMessage = responseBody['detail'];
+      log.w('--- Signup :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
     return false;
@@ -303,22 +274,14 @@ class API {
         jsonDecode(utf8.decode(response.bodyBytes));
 
     if (response.statusCode == 200) {
-      //
-      print('--- create profile --- \n' +
-          response.body +
-          '\n--- create profile --- \n');
-      //
       _responseMessage = responseBody['status'];
       _user!.profile = profile;
+      log.i('--- Create profile :: $_responseMessage');
       return true;
     } else {
-      //
-      print('--- create profile --- \n' +
-          (response.reasonPhrase ?? '') +
-          '\n' +
-          responseBody['detail'] +
-          '\n--- create profile --- \n');
-      //
+      _responseMessage = responseBody['detail'];
+      log.w(
+          '--- Create profile :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
     return false;
@@ -362,22 +325,14 @@ class API {
         jsonDecode(utf8.decode(response.bodyBytes));
 
     if (response.statusCode == 200) {
-      //
-      print('--- update profile --- \n' +
-          response.body +
-          '\n--- update profile --- \n');
-      //
       _responseMessage = responseBody['status'];
       _user!.profile = profile;
+      log.i('--- Update profile :: $_responseMessage');
       return true;
     } else {
-      //
-      print('--- update profile --- \n' +
-          (response.reasonPhrase ?? '') +
-          '\n' +
-          responseBody['detail'] +
-          '\n--- update profile --- \n');
-      //
+      _responseMessage = responseBody['detail'];
+      log.w(
+          '--- Update profile :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
     return false;
@@ -398,23 +353,15 @@ class API {
         jsonDecode(utf8.decode(response.bodyBytes));
 
     if (response.statusCode == 200) {
-      //
-      print('--- fetch user info --- \n' +
-          response.body +
-          '\n--- fetch user info --- \n');
-      //
       _user!.name = responseBody['name'];
       _user!.email = responseBody['email'];
       _responseMessage = APIResponseMessages.success;
+      log.i('--- Fetch user info :: $_responseMessage');
       return true;
     } else {
-      //
-      print('--- fetch user info --- \n' +
-          (response.reasonPhrase ?? '') +
-          '\n--- fetch user info --- \n');
-      //
       _responseMessage = responseBody['detail'];
-      //
+      log.w(
+          '--- Fetch user info :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
     return false;
@@ -435,24 +382,14 @@ class API {
         jsonDecode(utf8.decode(response.bodyBytes));
 
     if (response.statusCode == 200) {
-      //
-      print('--- fetch profile --- \n' +
-          response.body +
-          '\n--- fetch profile --- \n');
-      //
       _user!.profile = Profile.fromMap(responseBody);
       _responseMessage = APIResponseMessages.success;
+      log.i('--- Fetch profile :: $_responseMessage');
       return true;
     } else {
-      //
-      print('--- fetch profile --- \n' +
-          (response.reasonPhrase ?? '') +
-          '\n' +
-          responseBody['detail'] +
-          '\n--- fetch profile --- \n');
-      //
       _responseMessage = responseBody['detail'];
-      //
+      log.w(
+          '--- Fetch profile :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
     return false;
@@ -500,6 +437,7 @@ class API {
       MeasurementCollected measurement,
       // [User? user]) async {
       String user) async {
+    await _refreshToken();
     return user == 'Eu'
         ? _postMeasurements(measurement)
         : _postPacientMeasurements(measurement, user);
@@ -521,16 +459,12 @@ class API {
         jsonDecode(utf8.decode(response.bodyBytes));
 
     if (response.statusCode == 200) {
-      //
-      print('--- measure --- \n' + response.body + '\n--- measure --- \n');
-      //
       _responseMessage = responseBody['status'];
+      log.i('--- Measure :: $_responseMessage');
       return true;
     } else {
-      //
-      print(response.reasonPhrase);
-      //
-      print(responseBody['detail']);
+      _responseMessage = responseBody['detail'];
+      log.w('--- Measure :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
     return false;

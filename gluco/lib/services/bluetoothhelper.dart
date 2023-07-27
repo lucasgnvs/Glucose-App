@@ -2,23 +2,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gluco/models/device.dart';
 import 'package:gluco/models/measurement.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gluco/services/customlog.dart';
 
 class BluetoothHelper {
   BluetoothHelper._privateConstructor();
 
   static final BluetoothHelper instance = BluetoothHelper._privateConstructor();
 
-  // deprec
-  // final FlutterBluePlus _bluetooth = FlutterBluePlus.instance;
-
   // Dispositivo atualmente conectado, é o que é efetivamente utilizado na coleta
   _DeviceInternal? _connectedDevice;
 
-  //// VARIAVEL PARA SELECIONAR IMPLEMENTAÇÃO
-  bool source = false;
+  // Lista de dados recebidos em coleta com erro
   List<String> valuesError = [];
 
   /// Stream com sinais de alteração no estado do Bluetooth ligado/desligado
@@ -72,7 +69,7 @@ class BluetoothHelper {
           }
         }
         _connected.add(conn);
-        print('--- YieldConnection :: $conn : $error');
+        log.i('YieldConnection :: $conn : $error');
         error = 'Connected';
       }
     } catch (e) {
@@ -81,7 +78,7 @@ class BluetoothHelper {
       _connected.add(false);
       // error = 'Exception: $e';
     }
-    print('--- YieldConnection :: Terminated : $error');
+    log.w('--- YieldConnection :: Terminated : $error');
   }
 
   /// Lista de dispositivos encontrados pelo escaneamento
@@ -90,12 +87,14 @@ class BluetoothHelper {
   /// Mapeamento dos BluetoothDevices para Devices com inclusão do
   /// dispositivo atualmente conectado
   List<Device> get devices {
-    List<Device> dvcs =
-        _devices.map((d) => Device(id: d.id.id, name: d.name)).toList();
+    List<Device> dvcs = _devices
+        .map((d) => Device(id: d.remoteId.str, name: d.localName))
+        .toList();
     if (_connectedDevice != null) {
       // encontra o dispositivo conectado e marca como conectado
-      dvcs.firstWhere((d) => d.id == _connectedDevice!.device.id.id).connected =
-          true;
+      dvcs
+          .firstWhere((d) => d.id == _connectedDevice!.device.remoteId.str)
+          .connected = true;
     }
     return dvcs;
   }
@@ -107,10 +106,11 @@ class BluetoothHelper {
       (results) {
         _devices.clear();
         for (ScanResult r in results) {
-          if (RegExp(r'MXCHIP.*', dotAll: true).hasMatch(r.device.name)) {
+          if (RegExp(r'MXCHIP.*', dotAll: true).hasMatch(r.device.localName)) {
             // if (RegExp(r'.*', dotAll: true).hasMatch(r.device.name)) {
             _devices.add(r.device);
-            print("--- Device :: ${r.device.name} - ${r.device.id.id}");
+            log.i(
+                "--- Scan device :: ${r.device.localName} - ${r.device.remoteId.str}");
           }
         }
       },
@@ -130,7 +130,8 @@ class BluetoothHelper {
     bool status = true;
     String error = 'Success';
     try {
-      BluetoothDevice device = _devices.firstWhere((d) => d.id.id == dvc.id);
+      BluetoothDevice device =
+          _devices.firstWhere((d) => d.remoteId.str == dvc.id);
       // autoConnect como true tava dando problema no _connectedDevice ser setado com null
       await device
           .connect(autoConnect: false)
@@ -159,7 +160,7 @@ class BluetoothHelper {
               return id == 'FFE1' || id == 'F2A8';
             });
           } catch (e) {
-            print('Characteristics not found');
+            log.w('--- Connect :: Characteristics not found');
           }
           /*
           for (BluetoothService s in services) {
@@ -182,7 +183,7 @@ class BluetoothHelper {
           if (rx != null && tx != null) {
             _connectedDevice =
                 _DeviceInternal(device: device, receiver: rx, transmitter: tx);
-            await _saveDevice(device.id.id);
+            await _saveDevice(device.remoteId.str);
             // ### falta: função para verificar se possui medições nao recebidas
             _yieldConnection();
           } else {
@@ -196,7 +197,7 @@ class BluetoothHelper {
       status = false;
       error = 'Exception: $e';
     }
-    print('--- Connection status :: $status : $error');
+    log.i('--- Connection status :: $status : $error');
     return status;
   }
 
@@ -207,7 +208,7 @@ class BluetoothHelper {
       BluetoothDevice dvc = _connectedDevice!.device;
       _connectedDevice = null;
       await dvc.disconnect();
-      print('--- Disconnected');
+      log.i('--- Disconnected');
       return true;
     } catch (e) {
       return false;
@@ -223,7 +224,7 @@ class BluetoothHelper {
     if (deviceId == null) {
       return false;
     }
-    print('--- AutoConnect SP :: $deviceId');
+    log.i('--- AutoConnect SP :: $deviceId');
     await scan();
     return await connect(Device(id: deviceId));
   }
@@ -291,7 +292,7 @@ class BluetoothHelper {
           utf8.encode(_BluetoothFlags.requesting),
           withoutResponse: true);
     } catch (e) {
-      print('--- BLE Write error');
+      log.e('--- Collect :: BLE Write error');
     }
 
     late MeasurementCollected measure;
@@ -306,18 +307,17 @@ class BluetoothHelper {
     // prepara buffer e tx
     List<String> readBuffer = [];
     await _connectedDevice!.receiver.setNotifyValue(true);
-    Stream<List<int>> readStream = _connectedDevice!.receiver.value;
+    Stream<List<int>> readStream = _connectedDevice!.receiver.lastValueStream;
     // escuta novos valores do rx
     StreamSubscription<List<int>> streamSubs = readStream.listen((hex) {
       String dec = utf8.decode(hex);
       readBuffer.add(dec);
       valuesError.add(dec);
-      print('--- dec  = $dec'); //############
       if (dec.contains('\$')) {
         try {
           confirm.complete();
         } catch (e) {
-          print('--- Complete error');
+          log.e('--- Collect :: Complete error');
         }
       }
     });
@@ -332,111 +332,37 @@ class BluetoothHelper {
     valuesStr.addAll(readBuffer.join().split(';'));
     for (String str in valuesStr) {
       try {
-        print('--- str = $str'); //############
         values.add(num.parse(str));
       } catch (e) {
-        print('--- Parse error');
+        log.e('--- Collect :: Value parse error');
       }
     }
-    if (source) {
-      // VERSAO LEONARDO
-      // MaxLed1; // -- 0
-      // MaxLed2;
-      // MaxLed3;
-      // MaxLed4:
-      // MinLed1; // -- i 4
-      // MinLed2;
-      // MinLed3;
-      // MinLed4;
-      // Mod1; // -- i 8
-      // Fase1;...;
-      // Mod32;
-      // Fase32; // 4 pontos
-      // Mod1; // -- i 72
-      // Fase1;...;
-      // Mod32;
-      // Fase32; // 2 pontos
-      // BPM; // -- i 136
-      // SPO2; // -- i 137
-      // Temperatura; // -- i 138
-      // Umidade // -- i 139
-      try {
-        for (int i = 0; i < 64; i += 2) {
-          m_4p.add(values[8 + i].toDouble());
-          f_4p.add(values[8 + i + 1].toDouble());
-          m_2p.add(values[72 + i].toDouble());
-          f_2p.add(values[72 + i + 1].toDouble());
+    try {
+      for (int d = 0; d < 128; d += 32) {
+        for (int i = 0; i < 16; i += 2) {
+          m_4p.add(values[d + i].toDouble());
+          f_4p.add(values[d + i + 1].toDouble());
+          m_2p.add(values[16 + d + i].toDouble());
+          f_2p.add(values[16 + d + i + 1].toDouble());
         }
-        measure = MeasurementCollected(
-          id: -1,
-          apparent_glucose: null,
-          pr_rpm: values[136].toInt(),
-          spo2: values[137].toInt(),
-          temperature: values[138].toDouble(),
-          humidity: values[139].toDouble(),
-          m_4p: m_4p,
-          f_4p: f_4p,
-          m_2p: m_2p,
-          f_2p: f_2p,
-          maxled: values.sublist(0, 4).cast<double>(),
-          minled: values.sublist(4, 8).cast<double>(),
-          date: DateTime.now(),
-        );
-      } catch (e) {
-        print('-- List parse error $e');
       }
-    } else {
-      // VERSAO PATRICK (tá alternado mod fase)
-      // bioimpedancia quatro fios primeira decada modulo (8) // -- i 0
-      // bioimpedancia quatro fios primeira decada fase (8) // -- i 8
-      // bioimpedancia dois fios primeira decada modulo (8) // -- i 16
-      // bioimpedancia dois fios primeira decada fase (8) // -- i 24
-      // bioimpedancia quatro fios segunda decada modulo (8) // -- i 32
-      // bioimpedancia quatro fios segunda decada fase (8) // -- i 40
-      // bioimpedancia dois fios segunda decada modulo (8) // -- i 48
-      // bioimpedancia dois fios segunda decada fase (8) // -- i 56
-      // bioimpedancia quatro fios terceira decada modulo (8) // -- i 64
-      // bioimpedancia quatro fios terceira decada fase (8) // -- i 72
-      // bioimpedancia dois fios terceira decada modulo (8) // -- i 80
-      // bioimpedancia dois fios terceira decada fase (8) // -- i 88
-      // bioimpedancia quatro fios quarta decada modulo (8) // -- i 96
-      // bioimpedancia quatro fios quarta decada fase (8) // -- i 104
-      // bioimpedancia dois fios quarta decada modulo (8) // -- i 112
-      // bioimpedancia dois fios quarta decada fase (8) // -- i 120
-      // valores maximos leds (4) // -- i 128
-      // valores minimos leds (4) // -- i 132
-      // bpm // -- i 136
-      // SPO2 // -- i 137
-      // umidade // -- i 138
-      // temperatura // -- i 139
-      try {
-        for (int d = 0; d < 128; d += 32) {
-          for (int i = 0; i < 16; i += 2) {
-            m_4p.add(values[d + i].toDouble());
-            f_4p.add(values[d + i + 1].toDouble());
-            m_2p.add(values[16 + d + i].toDouble());
-            f_2p.add(values[16 + d + i + 1].toDouble());
-          }
-        }
-        print(values.length);
-        measure = MeasurementCollected(
-          id: -1,
-          apparent_glucose: null,
-          pr_rpm: values[136].toInt(),
-          spo2: values[137].toInt(),
-          humidity: values[138].toDouble(),
-          temperature: values[139].toDouble(),
-          m_4p: m_4p,
-          f_4p: f_4p,
-          m_2p: m_2p,
-          f_2p: f_2p,
-          maxled: values.sublist(128, 132).cast<double>(),
-          minled: values.sublist(132, 136).cast<double>(),
-          date: DateTime.now(),
-        );
-      } catch (e) {
-        print('-- List parse error $e');
-      }
+      measure = MeasurementCollected(
+        id: -1,
+        apparent_glucose: null,
+        pr_rpm: values[136].toInt(),
+        spo2: values[137].toInt(),
+        humidity: values[138].toDouble(),
+        temperature: values[139].toDouble(),
+        m_4p: m_4p,
+        f_4p: f_4p,
+        m_2p: m_2p,
+        f_2p: f_2p,
+        maxled: values.sublist(128, 132).cast<double>(),
+        minled: values.sublist(132, 136).cast<double>(),
+        date: DateTime.now(),
+      );
+    } catch (e) {
+      log.e('--- Collect ::  List parse error $e');
     }
 
     // ### se ocorrer um erro precisa enviar que deu erro?

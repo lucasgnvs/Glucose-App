@@ -1,9 +1,11 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:gluco/db/dbtest.dart';
 import 'package:gluco/services/bluetoothhelper.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:gluco/services/customlog.dart';
 import 'package:gluco/pages/devicepage.dart';
 import 'package:gluco/pages/firstloginpage.dart';
 import 'package:gluco/pages/historypage.dart';
@@ -16,16 +18,14 @@ import 'package:gluco/services/api.dart';
 import 'package:gluco/services/btletest.dart';
 import 'package:gluco/styles/customcolors.dart';
 import 'package:gluco/views/historyvo.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
 
 String _defaultHome = '/login';
 bool offline = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
 
+  await logInit();
 
   if (await API.instance.login()) {
     switch (API.instance.responseMessage) {
@@ -44,12 +44,10 @@ void main() async {
     }
   }
 
-
   BluetoothHelper.instance.autoConnect();
 
   runApp(
     MaterialApp(
-      
       home: Main(),
     ),
   );
@@ -103,10 +101,8 @@ class MainState extends State<Main> {
         '/teste': (context) => FlutterBlueApp(),
         // '/teste': (context) => DBTest(),
       },
-
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-  supportedLocales:  AppLocalizations.supportedLocales,
-
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }
