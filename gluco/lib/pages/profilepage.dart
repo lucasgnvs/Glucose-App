@@ -7,6 +7,7 @@ import 'package:gluco/services/api.dart';
 import 'package:gluco/styles/customcolors.dart';
 import 'package:gluco/styles/dateformatter.dart';
 import 'package:gluco/styles/defaultappbar.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class ProfilePage extends StatefulWidget {
   ProfilePage();
@@ -44,7 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
       child: Scaffold(
-        appBar: defaultAppBar(title: 'Meu Perfil'),
+        appBar: defaultAppBar(title: context.loc.my_profile),
         body: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints viewportConstraints) {
             return SingleChildScrollView(
@@ -154,7 +155,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     padding:
                                         EdgeInsets.only(top: 10.0, left: 15.0),
                                     child: Text(
-                                      'Data de Nascimento',
+                                      context.loc.birthday,
                                       style: TextStyle(
                                         fontSize: 18.0,
                                         color: CustomColors.lightGreen,
@@ -206,7 +207,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                           padding: EdgeInsets.only(
                                               top: 10.0, left: 15.0),
                                           child: Text(
-                                            'Peso',
+                                            context.loc.weight,
                                             style: TextStyle(
                                               fontSize: 18.0,
                                               color: CustomColors.lightGreen
@@ -258,7 +259,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                           padding: EdgeInsets.only(
                                               top: 10.0, left: 15.0),
                                           child: Text(
-                                            'Altura',
+                                            context.loc.height,
                                             style: TextStyle(
                                               fontSize: 18.0,
                                               color: CustomColors.lightGreen
@@ -310,7 +311,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     padding:
                                         EdgeInsets.only(top: 10.0, left: 15.0),
                                     child: Text(
-                                      'Sexo',
+                                      context.loc.sex,
                                       style: TextStyle(
                                         fontSize: 18.0,
                                         color: CustomColors.lightGreen
@@ -364,7 +365,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     padding:
                                         EdgeInsets.only(top: 10.0, left: 15.0),
                                     child: Text(
-                                      'Tipo de Diabetes',
+                                      context.loc.type_of_diabetes,
                                       style: TextStyle(
                                         fontSize: 18.0,
                                         color: CustomColors.lightGreen
@@ -429,7 +430,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       onPressed: !isValid
                                           ? null
                                           : controller.executeUpdate,
-                                      child: const Text('Salvar'),
+                                      child: Text(context.loc.save),
                                     ),
                                   ],
                                 );

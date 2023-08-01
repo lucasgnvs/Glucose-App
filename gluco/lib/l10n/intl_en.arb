@@ -31,6 +31,15 @@
     "about_us": "About Us",
     "log_out": "Log Out",
     "historic": "Historic",
+    "my_profile": "My Profile",
+    "birthday": "Birthday",
+    "weight": "Weight",
+    "height": "Height",
+    "type_of_diabetes": "Type of Diabetes",
+    "save": "Save",
+    "sex": "Sex",
+    "conclude": "Conclude",
+    "helo": "Olá",
 
     "generic_error_required_field": "*Required Field",
     "generic_error_prompt": "An error occurred",
@@ -78,5 +87,7 @@
     "devicepage_prompt_watch_connection": "Connection with the watch",
     "devicepage_prompt_available_devices": "Available Devices",
     "devicepage_error_bluetooth_off": "The Bluetooth is turned off",
-    "devicepage_error_device_not_found": "No Bluetooth device found..."
+    "devicepage_error_device_not_found": "No Bluetooth device found...",
+
+    "firstlogin_prompt_personal_info": "To continue, fill in the information requested."
 }

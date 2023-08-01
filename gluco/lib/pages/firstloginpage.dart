@@ -6,6 +6,7 @@ import 'package:gluco/controllers/profilecontroller.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/styles/customcolors.dart';
 import 'package:gluco/styles/dateformatter.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class FirstLoginPage extends StatefulWidget {
   const FirstLoginPage();
@@ -101,7 +102,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                       children: [
                         TextSpan(
                           text:
-                              'Olá, ${API.instance.currentUser?.name.split(' ')[0]}!\n',
+                              '${context.loc.helo} ${API.instance.currentUser?.name.split(' ')[0]}!\n',
                           style: TextStyle(
                             fontSize: 22.0,
                             fontWeight: FontWeight.bold,
@@ -110,7 +111,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                         ),
                         TextSpan(
                           text:
-                              'Para continuar, preencha as informações pessoais de cadastro de perfil.',
+                              context.loc.firstlogin_prompt_personal_info,
                         ),
                       ],
                     ),
@@ -121,7 +122,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                   children: [
                     Padding(
                       padding: EdgeInsets.only(bottom: 8.0),
-                      child: Text('Data de Nascimento',
+                      child: Text(context.loc.birthday,
                           style: TextStyle(
                               color: CustomColors.greenBlue.withOpacity(1.0))),
                     ),
@@ -155,7 +156,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 20.0, bottom: 8.0),
-                            child: Text('Peso',
+                            child: Text(context.loc.weight,
                                 style: TextStyle(
                                     color: CustomColors.greenBlue
                                         .withOpacity(1.0))),
@@ -191,7 +192,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 20.0, bottom: 8.0),
-                            child: Text('Altura',
+                            child: Text(context.loc.height,
                                 style: TextStyle(
                                     color: CustomColors.greenBlue
                                         .withOpacity(1.0))),
@@ -227,7 +228,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                   children: [
                     Padding(
                       padding: EdgeInsets.only(top: 20.0, bottom: 8.0),
-                      child: Text('Sexo',
+                      child: Text(context.loc.sex,
                           style: TextStyle(
                               color: CustomColors.greenBlue.withOpacity(1.0))),
                     ),
@@ -262,7 +263,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                   children: [
                     Padding(
                       padding: EdgeInsets.only(top: 20.0, bottom: 8.0),
-                      child: Text('Tipo de Diabetes',
+                      child: Text(context.loc.type_of_diabetes,
                           style: TextStyle(
                               color: CustomColors.greenBlue.withOpacity(1.0))),
                     ),
@@ -330,8 +331,8 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                               child: child,
                             );
                           },
-                          child: const Text(
-                            'Concluir',
+                          child: Text(
+                            context.loc.conclude,
                             style: TextStyle(
                               fontSize: 16.0,
                               fontWeight: FontWeight.bold,
@@ -344,7 +345,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                             alignment: Alignment.bottomLeft,
                             padding: EdgeInsets.all(10.0),
                             child: Text(
-                              '*Preencha todos os campos',
+                              context.loc.generic_error_unfilled_fields,
                               style: TextStyle(color: Colors.grey),
                             ),
                           ),

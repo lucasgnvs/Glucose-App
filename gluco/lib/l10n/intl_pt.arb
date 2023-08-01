@@ -32,6 +32,15 @@
     "about_us": "Sobre Nós",
     "log_out": "Sair",
     "historic": "Histórico",
+    "my_profile": "Meu Perfil",
+    "birthday": "Data de Nascimento",
+    "weight": "Peso",
+    "height": "Altura",
+    "type_of_diabetes": "Tipo de Diabetes",
+    "save": "Salvar",
+    "sex": "Sexo",
+    "conclude": "Concluir",
+    "helo": "Helo",
 
     "generic_error_required_field": "*Campo Obrigatório",
     "generic_error_prompt": "*Ocorreu um erro",
@@ -76,5 +85,7 @@
     "devicepage_prompt_watch_connection": "Conexão com o relógio",
     "devicepage_prompt_available_devices": "Dispositivos Disponíveis",
     "devicepage_error_bluetooth_off": "O bluetooth está desabilidato",
-    "devicepage_error_device_not_found": "Nenhum dispositivo Bluetooth encontrado..."
+    "devicepage_error_device_not_found": "Nenhum dispositivo Bluetooth encontrado...",
+
+    "firstlogin_prompt_personal_info": "Para continuar, preencha as informações pessoais de cadastro de perfil."
 }
