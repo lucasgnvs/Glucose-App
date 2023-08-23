@@ -1,7 +1,4 @@
-// ignore_for_file: non_constant_identifier_names
-
 /// Resposta da requisição de novo token
-/// métodos que estão comentados deixei por consistência, mas talvez não sejam usados
 class TokenResponseModel {
   late final String token;
   late final String refresh_token;
@@ -34,11 +31,6 @@ class LoginRequestModel {
     required this.password,
   });
 
-  // LoginRequestModel.fromMap(Map<String, dynamic> json) {
-  //   email = json['username'];
-  //   password = json['password'];
-  // }
-
   Map<String, dynamic> toMap() {
     final _data = <String, dynamic>{};
     _data['username'] = email;
@@ -64,14 +56,6 @@ class LoginResponseModel {
     token = json['access_token'];
     refresh_token = json['refresh_token'];
   }
-
-  // Map<String, dynamic> toMap() {
-  //   final _data = <String, dynamic>{};
-  //   _data['client_id'] = client_id;
-  //   _data['access_token'] = token;
-  //   _data['refresh_token'] = refresh_token;
-  //   return _data;
-  // }
 }
 
 /// Model para body da requisição de cadastro
@@ -85,12 +69,6 @@ class SignUpRequestModel {
     required this.email,
     required this.password,
   });
-
-  // SignUpRequestModel.fromMap(Map<String, String> json) {
-  //   name = json['name'];
-  //   email = json['email'];
-  //   password = json['password'];
-  // }
 
   Map<String, dynamic> toMap() {
     final _data = <String, String>{};

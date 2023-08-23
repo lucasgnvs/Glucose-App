@@ -1,6 +1,6 @@
 // ignore_for_file: prefer_final_fields, non_constant_identifier_names
 
-import 'package:gluco/db/databasehelper.dart';
+import 'package:gluco/db/database_helper.dart';
 import 'package:gluco/models/measurement.dart';
 import 'package:gluco/services/api.dart';
 import 'package:intl/intl.dart';
@@ -8,14 +8,14 @@ import 'package:intl/intl.dart';
 /// Classe de visualização das medições.
 /// Possui os dados da medição propriamente ditos e o atributo isExpanded
 /// para controlar o estado do painel expandido/colapsado na tela de histórico
-class MeasurementVO {
+class MeasurementView {
   late double glucose;
   late int spo2;
   late int pr_rpm;
   late DateTime date;
   bool isExpanded = false;
 
-  MeasurementVO(
+  MeasurementView(
     MeasurementCompleted measurement,
   ) {
     glucose = measurement.glucose;
@@ -27,17 +27,16 @@ class MeasurementVO {
 
 /// Armazena as medições em memória em um mapa de meses para viabilizar a
 /// construção da visualização do histórico de medições.
+///
 /// As chaves do mapa são strings 'mes, ano' e os valores são mapas de dias,
 /// as chaves destes são strings 'diasemana, diames' e os valores são listas
 /// de medições ordenadas da mais recente para a mais antiga
-abstract class HistoryVO {
+abstract class HistoryView {
   /// Mapa de medições
-  static final Map<String, Map<String, List<MeasurementVO>>> measurementsVOMap =
-      <String, Map<String, List<MeasurementVO>>>{};
+  static final Map<String, Map<String, List<MeasurementView>>>
+      measurementsViewMap = <String, Map<String, List<MeasurementView>>>{};
 
   /// Medição mais recente, utilizada na visualização da home
-  /// (eu quis tirar o collected da inicialização na main pra não ter que passar
-  /// pra home por parametro, mas não sei se faz sentido ela ficar aqui)
   static final MeasurementCompleted currentMeasurement = MeasurementCompleted(
     id: -1,
     spo2: 0,
@@ -48,20 +47,20 @@ abstract class HistoryVO {
 
   /// Insere a medição atual no mapa
   static bool updateMeasurementsMap() {
-    return _insertMeasurementVO(currentMeasurement);
+    return _insertMeasurementView(currentMeasurement);
   }
 
-  /// Mapeia Measurement para uma instância de MeasurementVO
+  /// Mapeia Measurement para uma instância de MeasurementView
   /// e insere no mapa de visualização
-  static bool _insertMeasurementVO(MeasurementCompleted measurement) {
+  static bool _insertMeasurementView(MeasurementCompleted measurement) {
     if (measurement.id != -1) {
       // faz uma copia pq a inclusão é por referência
-      MeasurementVO _measurementVO = MeasurementVO(measurement);
-      // ARRUMAR FORMATACAO PARA SEGUIR LOCALIZAÇÃO
+      MeasurementView _MeasurementView = MeasurementView(measurement);
+      // TODO: Arrumar localização para seguir loc e não pt_BR
       String MMMMy = // 'mes, ano'
-          DateFormat('MMMM, y', 'pt_BR').format(_measurementVO.date);
+          DateFormat('MMMM, y', 'pt_BR').format(_MeasurementView.date);
       String EEEEd = // 'diasemana, diames'
-          DateFormat('EEEE, d', 'pt_BR').format(_measurementVO.date);
+          DateFormat('EEEE, d', 'pt_BR').format(_MeasurementView.date);
       // Capitalização dos nomes de mês e dia
       MMMMy = MMMMy.replaceRange(0, 1, MMMMy[0].toUpperCase());
       EEEEd = EEEEd.replaceRange(0, 1, EEEEd[0].toUpperCase());
@@ -70,16 +69,16 @@ abstract class HistoryVO {
       if (index != -1) {
         EEEEd = EEEEd.replaceRange(index, index + 6, '');
       }
-      EEEEd = EEEEd.split('-')[0]; // tá certo isso?
+      EEEEd = EEEEd.split('-')[0];
       // Insere a medição no mapa
-      if (!measurementsVOMap.containsKey(MMMMy)) {
-        measurementsVOMap[MMMMy] = {};
+      if (!measurementsViewMap.containsKey(MMMMy)) {
+        measurementsViewMap[MMMMy] = {};
       }
-      if (!measurementsVOMap[MMMMy]!.containsKey(EEEEd)) {
-        measurementsVOMap[MMMMy]![EEEEd] = [];
+      if (!measurementsViewMap[MMMMy]!.containsKey(EEEEd)) {
+        measurementsViewMap[MMMMy]![EEEEd] = [];
       }
-      // --- ideia: talvez verificar se não está incluindo duplicado, por consistência
-      measurementsVOMap[MMMMy]![EEEEd]!.insert(0, _measurementVO);
+      // TODO: talvez verificar se não está incluindo duplicado, por consistência
+      measurementsViewMap[MMMMy]![EEEEd]!.insert(0, _MeasurementView);
       return true;
     }
     return false;
@@ -92,14 +91,8 @@ abstract class HistoryVO {
         .queryMeasurementCompleted(API.instance.currentUser!);
 
     if (measurementsList.isNotEmpty) {
-      // não sei o quanto faz sentido: a querymeasurements retorna uma lista
-      // ordenada da mais recente pra mais antiga, só que a _insertMeasurementVO
-      // insere no inicio da lista pra updateMeasurementsMap colocar a mais recente
-      // no lugar certo, então fiz a measurementsList ser inserida invertida (reversed)
-      // pra funcionar, não quis fazer a queryMeasurements retornar uma lista
-      // já ordenada da mais antiga pra mais recente pq não faria sentido, ou faria?
       for (MeasurementCompleted measurement in measurementsList.reversed) {
-        _insertMeasurementVO(measurement);
+        _insertMeasurementView(measurement);
       }
       currentMeasurement.id = measurementsList.first.id;
       currentMeasurement.glucose = measurementsList.first.glucose;
@@ -114,7 +107,7 @@ abstract class HistoryVO {
 
   /// Apaga as medições da memória, utilizado no logout
   static void disposeHistory() {
-    measurementsVOMap.clear();
+    measurementsViewMap.clear();
     currentMeasurement.id = -1;
     currentMeasurement.glucose = 0;
     currentMeasurement.spo2 = 0;

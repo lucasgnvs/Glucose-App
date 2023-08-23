@@ -1,10 +1,10 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors_in_immutables, prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'package:gluco/styles/customcolors.dart';
-import 'package:gluco/styles/mainbottomappbar.dart';
-import 'package:gluco/styles/defaultappbar.dart';
-import 'package:gluco/views/historyvo.dart';
+import 'package:gluco/styles/custom_colors.dart';
+import 'package:gluco/styles/main_bottom_app_bar.dart';
+import 'package:gluco/styles/default_app_bar.dart';
+import 'package:gluco/views/history_view.dart';
 import 'package:gluco/app_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
@@ -17,8 +17,8 @@ class HistoryPage extends StatefulWidget {
 }
 
 class _HistoryPageState extends State<HistoryPage> {
-  final Map<String, Map<String, List<MeasurementVO>>> _monthsMap =
-      HistoryVO.measurementsVOMap;
+  final Map<String, Map<String, List<MeasurementView>>> _monthsMap =
+      HistoryView.measurementsViewMap;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +59,7 @@ class _HistoryPageState extends State<HistoryPage> {
               ? Center(
                   child: Text(
                     context.loc.historypage_view_measurements,
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                     textAlign: TextAlign.center,
                   ),
                 )
@@ -67,9 +67,6 @@ class _HistoryPageState extends State<HistoryPage> {
                   padding: EdgeInsets.all(4),
                   itemCount: _monthsMap.length,
                   itemBuilder: (c, indexMonth) {
-                    // as chaves são ordenadas do mais velho pro mais novo,
-                    // para fazer o display das medicoes mais novas primeiro
-                    // é necessário inverte-las
                     String monthKey =
                         _monthsMap.keys.toList().reversed.elementAt(indexMonth);
                     return Column(
@@ -81,8 +78,7 @@ class _HistoryPageState extends State<HistoryPage> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                // se houverem medidas de anos diferentes, o mês mostra o ano também,
-                                // caso contrário só o nome do mês
+                                // O ano é mostrado somente se houverem medidas de anos diferentes
                                 isSameYear
                                     ? monthKey.substring(
                                         0, monthKey.indexOf(','))
@@ -103,9 +99,6 @@ class _HistoryPageState extends State<HistoryPage> {
                           ),
                         ),
                         Column(
-                          // mesma questão dos meses, a lista de chaves de dias
-                          // precisa ser invertida para mostrar primeiro as
-                          // medições mais recentes
                           children: _monthsMap[monthKey]!
                               .keys
                               .toList()
@@ -126,8 +119,8 @@ class _HistoryPageState extends State<HistoryPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                   ),
-                                  // Precisa corrigir a borda arredondada do ExpansionPanelList
-                                  // e o padding entre os ExpansionPanel quando fechados
+                                  // TODO: Corrigir a borda arredondada do ExpansionPanelList
+                                  //  e o padding entre os ExpansionPanel quando fechados
                                   ExpansionPanelList(
                                     expandedHeaderPadding: EdgeInsets.all(0),
                                     elevation: 4,
@@ -141,7 +134,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                     }),
                                     children: _monthsMap[monthKey]![dayKey]!
                                         .map<ExpansionPanel>(
-                                            (MeasurementVO measurementVO) {
+                                            (MeasurementView measurementVO) {
                                       return ExpansionPanel(
                                         backgroundColor: CustomColors.histWhite,
                                         isExpanded: measurementVO.isExpanded,
@@ -163,7 +156,6 @@ class _HistoryPageState extends State<HistoryPage> {
                                                     color: Colors.white,
                                                     size: 32),
                                               ),
-                                              // Botei horário por enquanto apenas para conseguir ver
                                               trailing: Text(DateFormat.Hm()
                                                   .format(measurementVO.date)));
                                         }),

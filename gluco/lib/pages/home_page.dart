@@ -4,17 +4,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:async_button_builder/async_button_builder.dart';
-import 'package:gluco/db/databasehelper.dart';
+import 'package:gluco/db/database_helper.dart';
 import 'package:gluco/models/measurement.dart';
 import 'package:gluco/services/api.dart';
-import 'package:gluco/services/bluetoothhelper.dart';
-import 'package:gluco/services/customlog.dart';
-import 'package:gluco/styles/defaultappbar.dart';
-import 'package:gluco/styles/mainbottomappbar.dart';
-import 'package:gluco/styles/customcolors.dart';
-import 'package:gluco/views/historyvo.dart';
-import 'package:gluco/widgets/iconcard.dart';
-import 'package:gluco/widgets/sidebar.dart';
+import 'package:gluco/services/bluetooth_helper.dart';
+import 'package:gluco/styles/default_app_bar.dart';
+import 'package:gluco/styles/main_bottom_app_bar.dart';
+import 'package:gluco/styles/custom_colors.dart';
+import 'package:gluco/views/history_view.dart';
+import 'package:gluco/widgets/icon_card.dart';
+import 'package:gluco/widgets/side_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:gluco/app_icons.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
@@ -39,6 +38,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
+  // TODO: Continuar tela de seleção de pacientes assim que API fornecer tais informações
   bool _isPacientSelected = false;
   String? _dropdownValue;
 
@@ -59,9 +59,9 @@ class _HomePageState extends State<HomePage> {
           fontStyle: FontStyle.italic,
         ),
       ),
-      data: HistoryVO.currentMeasurement.id != -1
+      data: HistoryView.currentMeasurement.id != -1
           ? Text(
-              '${HistoryVO.currentMeasurement.glucose} mg/dL',
+              '${HistoryView.currentMeasurement.glucose} mg/dL',
               style: TextStyle(
                 fontSize: 18.0,
                 color: Colors.grey[700],
@@ -83,9 +83,9 @@ class _HomePageState extends State<HomePage> {
           fontStyle: FontStyle.italic,
         ),
       ),
-      data: HistoryVO.currentMeasurement.id != -1
+      data: HistoryView.currentMeasurement.id != -1
           ? Text(
-              '${HistoryVO.currentMeasurement.spo2}%',
+              '${HistoryView.currentMeasurement.spo2}%',
               style: TextStyle(
                 color: Colors.grey[700],
                 fontWeight: FontWeight.bold,
@@ -106,9 +106,9 @@ class _HomePageState extends State<HomePage> {
           fontStyle: FontStyle.italic,
         ),
       ),
-      data: HistoryVO.currentMeasurement.id != -1
+      data: HistoryView.currentMeasurement.id != -1
           ? Text(
-              '${HistoryVO.currentMeasurement.pr_rpm} bpm',
+              '${HistoryView.currentMeasurement.pr_rpm} bpm',
               style: TextStyle(
                 color: Colors.grey[700],
                 fontWeight: FontWeight.bold,
@@ -121,6 +121,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: CustomColors.scaffLightBlue,
       appBar: imageAppBar(
+        // TODO: Trocar literal para generate
         imagename: 'assets/images/logoblue.png',
         width: MediaQuery.of(context).size.width * 0.25,
       ),
@@ -149,9 +150,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                       children: [
                         TextSpan(
-                          text: HistoryVO.currentMeasurement.id != -1
+                          text: HistoryView.currentMeasurement.id != -1
                               ? DateFormat('d MMM, E H:mm', 'pt_BR')
-                                  .format(HistoryVO.currentMeasurement.date)
+                                  .format(HistoryView.currentMeasurement.date)
                                   .toUpperCase()
                               : context.loc.no_data,
                           style: TextStyle(
@@ -199,7 +200,6 @@ class _HomePageState extends State<HomePage> {
                   ),
             StreamBuilder<bool>(
               stream: btConn,
-              // stream: Stream.value(true), // TESTE BOTÃAAAAAAAO
               initialData: false,
               builder: (contextStream, snapshot) {
                 return AsyncButtonBuilder(
@@ -217,39 +217,42 @@ class _HomePageState extends State<HomePage> {
                     try {
                       measurement = await BluetoothHelper.instance.collect();
                     } catch (e) {
+                      // TODO: tirar context de async gap
                       await _dialogErrorBluetooth(context);
-                      throw context.loc
-                          .homepage_error_measurement; // pro async_button mostrar ícone certo
+                      // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
+                      //  escolher uma exceção certa e não uma string
+                      throw 'erro na home';
                     }
                     bool response = false;
                     response = await _dialogMeasurement(context, measurement);
                     _isPacientSelected = false;
                     _dropdownValue = null;
                     if (!response) {
-                      throw context.loc
-                          .homepage_prompt_measurement_canceled; // pro async_button mostrar ícone certo
+                      // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
+                      //  escolher uma exceção certa e não uma string
+                      throw 'erro medicao cancelada';
                     }
-                    /////////////////// futuro
+                    // TODO: Atualizar visualização para receber última medição quando estiver disponível na API
                     // MeasurementCompleted measurement = await API.instance.getMeasurement();
                     // await DatabaseHelper.instance
                     //     .insertMeasurement(API.instance.currentUser!, measurement);
                     ///////////////////
                     /// SIMULAÇÃO
                     //measurement = await BluetoothHelper.instance.collect_rand();
-                    MeasurementCollected ms = measurement;
-                    MeasurementCompleted mc = HistoryVO.currentMeasurement;
-                    mc.id++;
-                    mc.spo2 = ms.spo2;
-                    mc.pr_rpm = ms.pr_rpm;
-                    mc.glucose = ms.apparent_glucose!;
-                    mc.date = ms.date;
-                    HistoryVO.updateMeasurementsMap();
-                    await DatabaseHelper.instance.insertMeasurementCompleted(
-                        API.instance.currentUser!, mc);
-                    setState(() {
-                      HistoryVO.disposeHistory();
-                      HistoryVO.fetchHistory();
-                    });
+                    // MeasurementCollected ms = measurement;
+                    // MeasurementCompleted mc = HistoryView.currentMeasurement;
+                    // mc.id++;
+                    // mc.spo2 = ms.spo2;
+                    // mc.pr_rpm = ms.pr_rpm;
+                    // mc.glucose = ms.apparent_glucose!;
+                    // mc.date = ms.date;
+                    // HistoryView.updateMeasurementsMap();
+                    // await DatabaseHelper.instance.insertMeasurementCompleted(
+                    //     API.instance.currentUser!, mc);
+                    // setState(() {
+                    //   HistoryView.disposeHistory();
+                    //   HistoryView.fetchHistory();
+                    // });
                     /////////
                   },
                   builder: (contextButton, child, callback, _) {
@@ -366,24 +369,26 @@ Future<bool> _dialogMeasurement(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ALT
-              // DropdownButtonFormField(
-              //     value: _dropdownValue,
-              //     icon: Icon(Icons.keyboard_arrow_down),
-              //     onChanged: (String? value) {
-              //       _isPacientSelected =
-              //           value?.isNotEmpty ?? false;
-              //       setState(() {
-              //         _dropdownValue = value!;
-              //       });
-              //     },
-              //     items: API.instance.pacientList
-              //         .map((String value) {
-              //       return DropdownMenuItem(
-              //         value: value,
-              //         child: Text(value),
-              //       );
-              //     }).toList()),
+              // TODO: Adicionar seleção de pacientes se usuário médico
+              /*
+              DropdownButtonFormField(
+                value: _dropdownValue,
+                icon: Icon(Icons.keyboard_arrow_down),
+                onChanged: (String? value) {
+                  _isPacientSelected =
+                      value?.isNotEmpty ?? false;
+                  setState(() {
+                    _dropdownValue = value!;
+                  });
+                },
+                items: API.instance.pacientList
+                    .map((String value) {
+                  return DropdownMenuItem(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList()),
+              */
               TextFormField(
                 controller: controller,
                 validator: (value) {
@@ -421,12 +426,15 @@ Future<bool> _dialogMeasurement(
             ),
             onPressed: () async {
               if (!(formKey.currentState?.validate() ?? false)) {
+                // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
+                //  escolher uma exceção certa e não uma string
                 throw 'Form inválido';
               }
               measurement.apparent_glucose = double.parse(controller.text);
               response = await _dialogConfirmMeasurement(
                   context, contextMeasurement, measurement);
-              Navigator.pop(contextMeasurement); // CORRIGIR NAO FUNCIONA
+              // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
+              Navigator.pop(contextMeasurement);
             },
           )
         ],
@@ -452,8 +460,9 @@ Future<void> _dialogConfirmCancel(
           TextButton(
             style: TextButton.styleFrom(backgroundColor: Colors.red[900]),
             onPressed: () {
+              // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
               Navigator.pop(contextCancel);
-              Navigator.pop(contextMeasurement); // talvez seja um problema
+              Navigator.pop(contextMeasurement);
             },
             child: Text(
               context.loc.cancel,
@@ -490,12 +499,9 @@ Future<bool> _dialogConfirmMeasurement(BuildContext context,
       return AlertDialog(
         title: Text(context.loc.homepage_prompt_confirm_data),
         content: Text(
-
-            // ALT
-            // '''Paciente: $_dropdownValue\n
-            // '''
+            // TODO: Adicionar confirmação de paciente se usuário médico
+            // 'Paciente: $_dropdownValue\n'
             '${context.loc.glucose} : ${measurement.apparent_glucose}'),
-        // '''),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
@@ -512,15 +518,16 @@ Future<bool> _dialogConfirmMeasurement(BuildContext context,
           AsyncButtonBuilder(
             onPressed: () async {
               response = await API.instance.postMeasurements(measurement, 'Eu');
-              // _dropdownValue!); // ALT
+              // TODO: Inserir campo do paciente no método post
+              // _dropdownValue!);
               if (!response) {
                 await DatabaseHelper.instance.insertMeasurementCollected(
                     API.instance.currentUser!, measurement);
               }
+              // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
               await _dialogSentMeasurement(context, contextMeasurement,
                   contextConfirm, measurement, response);
               Navigator.pop(contextConfirm);
-              // Navigator.pop(contextMeasurement); // TALVEZ BOTAR FORA DO SHOWDIALOG
             },
             builder: (cont, child, callback, _) {
               return TextButton(
@@ -559,11 +566,7 @@ Future<void> _dialogSentMeasurement(
         title: Text(response
             ? context.loc.homepage_prompt_measurement_sent
             : context.loc.homepage_error_measurement_not_sent),
-        // ALT
-        content:
-            // response
-            //     ?
-            SingleChildScrollView(
+        content: SingleChildScrollView(
           child: Column(
             children: measurement
                 .toMap()
@@ -571,20 +574,17 @@ Future<void> _dialogSentMeasurement(
                 .map((e) => Text('${e.key}: ${e.value}'))
                 .toList(),
           ),
-        )
-        // : null
-        ,
-        //////////
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
         actions: [
           TextButton(
             onPressed: (() {
+              // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
               Navigator.pop(contextSent);
-              // Navigator.pop(contextConfirm);
-              // Navigator.pop(contextMeasurement);
             }),
+            // TODO: Retirar literal
             child: Text(response ? 'Ok!' : context.loc.return_p),
           )
         ],

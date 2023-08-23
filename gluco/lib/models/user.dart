@@ -32,6 +32,7 @@ class User {
 }
 
 class Profile {
+  // TODO: por que não é Date?
   DateTime birthday;
   double weight;
   double height;

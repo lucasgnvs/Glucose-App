@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:gluco/db/databasehelper.dart';
+import 'package:gluco/db/database_helper.dart';
 
 // classe com campo de texto para execucao sql no banco local, uso pra debug
 class DBTest extends StatefulWidget {

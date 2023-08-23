@@ -4,11 +4,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart';
-import 'package:gluco/db/databasehelper.dart';
+import 'package:gluco/db/database_helper.dart';
 import 'package:gluco/models/measurement.dart';
 import 'package:gluco/models/requests.dart';
 import 'package:gluco/models/user.dart';
-import 'package:gluco/services/customlog.dart';
+import 'package:gluco/services/custom_log.dart';
 
 /// API para comunicação com o servidor
 class API {
@@ -23,12 +23,13 @@ class API {
   String? _refresh_token;
   String? _client_id;
 
-  ///// PRECISA RECEBER EM ALGUMA REQUISIÇÃO (LOGIN OU PERFIL?)
+  // TODO: Algum endpoint deve trazer essa informação
   bool _isDoctor = false;
   bool get isDoctor => _isDoctor;
-
   List<String> get pacientList => ['Eu', 'José', 'Alisson', 'Larissa'];
+  //
 
+  // TODO: Verificar problema de conexão no iOS
   // Detecção de conexão à internet
   final Connectivity _connectivity = Connectivity();
   Stream<ConnectivityResult> get connection =>
@@ -90,7 +91,7 @@ class API {
       log.w(
           '--- Refresh token :: ${response.reasonPhrase} :: $_responseMessage');
     }
-    // lançar exceção para logout?
+    // TODO: Lançar exceção para logout?
     return false;
   }
 
@@ -103,7 +104,7 @@ class API {
     _user = User();
 
     if (await hasConnection()) {
-      // ### precisa dar timeout
+      // TODO: Precisa dar timeout
       bool logged =
           auto ? await _fetchDBCredentials() : await _login(email, password);
       if (logged) {
@@ -116,19 +117,19 @@ class API {
         }
         await DatabaseHelper.instance
             .insertCredentials(_client_id!, _refresh_token!);
-        // ### verificação se banco possui medições não enviadas
+        // TODO: Verificação se banco possui medições não enviadas
         return true;
       }
     } else {
       if (auto &&
           await _fetchDBCredentials(false) &&
           await _fetchDBUserProfile()) {
-        // ### apiresponsemessage de modo offline
+        // TODO: apiresponsemessage de modo offline
         log.i('--- Login :: not connected, offline mode');
         _responseMessage = APIResponseMessages.offlineMode;
         return true;
       }
-      // ### apiresponsemessage sem conexao
+      // TODO: apiresponsemessage sem conexão
       _responseMessage = APIResponseMessages.noConnection;
       log.i('--- Login :: not connected, no profile');
     }
@@ -395,7 +396,7 @@ class API {
     return false;
   }
 
-  @Deprecated('usado temporariamente enquanto a api não salva imagem de perfil')
+  @Deprecated('Usado temporariamente enquanto a api não salva imagem de perfil')
   Future<void> _updateProfilePic() async {
     User? userData =
         await DatabaseHelper.instance.queryUserByClientID(_client_id!);
@@ -470,6 +471,7 @@ class API {
     return false;
   }
 
+  @Deprecated('Não faz sentido separar o método em dois')
   Future<bool> _postPacientMeasurements(
       // MeasurementCollected measurement, User user) async {
       MeasurementCollected measurement,
@@ -479,6 +481,7 @@ class API {
   }
 
   /// Busca tantas medições do banco remoto
+  // TODO: Implementar
   @Deprecated('Não tem endpoint pra isso ainda')
   Future<List<MeasurementCompleted>> fetchMeasurements() async {
     Uri url = Uri.https(_authority, '/measurements');

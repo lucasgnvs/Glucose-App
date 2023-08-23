@@ -1,9 +1,3 @@
-// Troquei a classe measurement pro padrão de estado, a professora rebeca
-// que deu a ideia e eu achei que ficou interessante, a medição pode estar em
-// andamento ou concluida, como tem dados que vem do bluetooth e serão usados
-// no calculo na nuvem mas não importam pro usuario faz sentido deixar separado
-// pra não armazenar informação desnecessária e facilitar no envio e recebimento
-// das requisições
 abstract class Measurement {
   late int id;
   late int spo2;
@@ -18,19 +12,21 @@ abstract class Measurement {
   });
 
   Measurement.fromMap(Map<String, dynamic> json) {
-    id = json['idmeasurements'] ?? -1; // id ainda não é passado nas requisições
+    // TODO: id não é passado nas requisições
+    id = json['idmeasurements'] ?? -1;
     spo2 = int.parse('${json['spo2']}');
     pr_rpm = int.parse('${json['pr_rpm']}');
-    date = DateTime.tryParse(json['date'] ?? '') ??
-        DateTime.now(); // data ainda não é passada nas requisições
+    // TODO: data não é passada nas requisições
+    date = DateTime.tryParse(json['date'] ?? '') ?? DateTime.now();
   }
 
   Map<String, dynamic> toMap() {
     Map<String, dynamic> _data = <String, dynamic>{};
+    // TODO: id não é passado nas requisições
     // _data['idmeasurements'] = id;
     _data['spo2'] = spo2;
     _data['pr_rpm'] = pr_rpm;
-    _data['date'] = date.toString(); //
+    _data['date'] = date.toString();
     return _data;
   }
 }

@@ -5,7 +5,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gluco/models/device.dart';
 import 'package:gluco/models/measurement.dart';
-import 'package:gluco/services/customlog.dart';
+import 'package:gluco/services/custom_log.dart';
 
 class BluetoothHelper {
   BluetoothHelper._privateConstructor();
@@ -86,21 +86,6 @@ class BluetoothHelper {
 
   /// Mapeamento dos BluetoothDevices para Devices com inclusão do
   /// dispositivo atualmente conectado
-  /* SIMULACAO
-  List<Device> get devices {
-    return [
-      Device(
-        id: '',
-        name: 'GlucoWatch',
-      )
-    ];
-  }
-
-  void conn() {
-    _connected.add(true);
-  }
-  */
-
   List<Device> get devices {
     List<Device> dvcs = _devices
         .map((d) => Device(id: d.remoteId.str, name: d.localName))
@@ -134,6 +119,7 @@ class BluetoothHelper {
     if (_connectedDevice != null) {
       // dispositivos conectados não são inseridos automaticamente
       // na lista de scan do FlutterBlue
+      // TODO: Verificar na documentação do pacote
       _devices.insert(0, _connectedDevice!.device);
     }
   }
@@ -177,29 +163,13 @@ class BluetoothHelper {
           } catch (e) {
             log.w('--- Connect :: Characteristics not found');
           }
-          /*
-          for (BluetoothService s in services) {
-            for (BluetoothCharacteristic c in s.characteristics) {
-              for (BluetoothDescriptor d in c.descriptors) {
-                List<int> hex = await d.read();
-                String value = utf8.decode(hex, allowMalformed: true);
-                if (value == 'RXD Port') {
-                  rx = c;
-                }
-                if (value == 'TXD Port') {
-                  tx = c;
-                }
-              }
-            }
-          }
-          */
           // estabelece novo dispositivo conectado, inicia a stream de conexão,
           // e inicia transmissão do sinal que solicita medição
           if (rx != null && tx != null) {
             _connectedDevice =
                 _DeviceInternal(device: device, receiver: rx, transmitter: tx);
             await _saveDevice(device.remoteId.str);
-            // ### falta: função para verificar se possui medições nao recebidas
+            // TODO: função para verificar se possui medições não recebidas
             _yieldConnection();
           } else {
             device.disconnect();
@@ -232,8 +202,7 @@ class BluetoothHelper {
 
   /// Busca por um dispositivo previamente conectado no SharedPreferences
   /// para tentar reconectar ao iniciar o aplicativo
-  // ### Como fazer para reconectar
-  // ### mesmo após já estar com app aberto e ter perdido conexão ????
+  // TODO: Como fazer para reconectar mesmo após já estar com app aberto e ter perdido conexão???
   Future<bool> autoConnect() async {
     String? deviceId = await _fetchDevice();
     if (deviceId == null) {
@@ -299,7 +268,7 @@ class BluetoothHelper {
 
   /// Faz a leitura dos dados da medição do dispositivo conectado
   Future<MeasurementCollected> collect() async {
-    // ##### ON CONNECTION LOST CORTAR COLETA
+    // TODO: Cortar coleta se a conexão for perdida
     assert(_connectedDevice != null);
 
     try {
@@ -386,7 +355,7 @@ class BluetoothHelper {
       log.e('--- Collect ::  List parse error $e');
     }
 
-    // ### se ocorrer um erro precisa enviar que deu erro?
+    // TODO: Se ocorrer um erro precisa enviar que deu erro?
     // _flag = _BluetoothFlags.received;
     // _connectedDevice!.transmitter.write(utf8.encode(_BluetoothFlags.received));
 

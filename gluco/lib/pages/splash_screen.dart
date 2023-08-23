@@ -2,7 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:gluco/styles/customcolors.dart';
+import 'package:gluco/styles/custom_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   final String route;
@@ -68,8 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
         child: Center(
-          // peguei a animação de exemplo na documentação de
-          // slidetransition só pra ver como ficaria
+          // TODO: animação sangue relógio da Ana
           child: SlideTransition(
             position: _offsetAnimation,
             child: Image.asset(

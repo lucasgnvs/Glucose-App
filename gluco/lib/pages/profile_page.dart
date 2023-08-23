@@ -1,12 +1,12 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors_in_immutables, prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'package:gluco/controllers/profilecontroller.dart';
+import 'package:gluco/controllers/profile_controller.dart';
 import 'package:gluco/models/user.dart';
 import 'package:gluco/services/api.dart';
-import 'package:gluco/styles/customcolors.dart';
-import 'package:gluco/styles/dateformatter.dart';
-import 'package:gluco/styles/defaultappbar.dart';
+import 'package:gluco/styles/custom_colors.dart';
+import 'package:gluco/styles/date_formatter.dart';
+import 'package:gluco/styles/default_app_bar.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -163,8 +163,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                   ),
                                   TextFormField(
-                                    enabled:
-                                        false, // Não pode ser alterado por enquanto
+                                    enabled: false,
                                     controller: controller.birthdate,
                                     inputFormatters: [DateFormatter()],
                                     style: TextStyle(color: Colors.black38),
@@ -221,7 +220,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                             border: OutlineInputBorder(
                                               borderSide: BorderSide.none,
                                             ),
-                                            // hintText: '70,5',
                                             suffixText: 'kg',
                                             isDense: true,
                                             contentPadding: EdgeInsets.only(
@@ -273,7 +271,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                             border: OutlineInputBorder(
                                               borderSide: BorderSide.none,
                                             ),
-                                            // hintText: '1,67',
                                             suffixText: 'm',
                                             isDense: true,
                                             contentPadding: EdgeInsets.only(
@@ -331,10 +328,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                     icon: Icon(Icons.keyboard_arrow_down),
                                     onChanged: null,
-                                    // Não pode ser alterado por enquanto
-                                    // (String? value) {
-                                    //     controller.sex = value!;
-                                    // },
                                     items:
                                         controller.sexList.map((String value) {
                                       return DropdownMenuItem(
@@ -385,10 +378,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                     icon: Icon(Icons.keyboard_arrow_down),
                                     onChanged: null,
-                                    // Não pode ser alterado por enquanto
-                                    // (String? value) {
-                                    //     controller.diabetes = value!;
-                                    // },
                                     items: controller.diabetesList
                                         .map((String value) {
                                       return DropdownMenuItem(
@@ -413,7 +402,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                         foregroundColor: Colors.white,
                                         textStyle: TextStyle(
                                           color: Colors.white,
-                                          // a cor tá errada, aparecendo cinza por algum motivo
+                                          // TODO: corrigir cor
                                           fontSize: 18.0,
                                           fontWeight: FontWeight.bold,
                                         ),

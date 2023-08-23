@@ -3,9 +3,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:gluco/models/device.dart';
-import 'package:gluco/services/bluetoothhelper.dart';
-import 'package:gluco/styles/customcolors.dart';
-import 'package:gluco/styles/defaultappbar.dart';
+import 'package:gluco/services/bluetooth_helper.dart';
+import 'package:gluco/styles/custom_colors.dart';
+import 'package:gluco/styles/default_app_bar.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class DevicePage extends StatefulWidget {
@@ -31,11 +31,6 @@ class _DevicePageState extends State<DevicePage> {
   StreamController<bool> connecting = StreamController<bool>.broadcast();
   void connectDevice(bool cnt, int i) async {
     connecting.add(true);
-    /* SIMULACAO
-    await Future.delayed(Duration(seconds: 2));
-    devices[i].connected = true;
-    BluetoothHelper.instance.conn();
-    */
     for (final dvc in devices) {
       dvc.connected = false;
     }
@@ -86,7 +81,6 @@ class _DevicePageState extends State<DevicePage> {
                 initialData: false,
                 builder: (contextStreamScan, snapshot) {
                   return Visibility(
-                    // se desligar o bluetooth, a mensagem continua aparecendo
                     visible: !snapshot.data! && devices.isNotEmpty,
                     child: Padding(
                       padding:
@@ -114,11 +108,10 @@ class _DevicePageState extends State<DevicePage> {
                   builder: (contextStreamState, snapshot) {
                     if (!snapshot.data!) {
                       return Center(
-                        // se ligar e desligar o bluetooth pode ocorrer DeadObjectException
                         child: Text(
                           context.loc.devicepage_error_bluetooth_off,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.headline6,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                       );
                     } else {
@@ -223,8 +216,6 @@ class _DevicePageState extends State<DevicePage> {
                                                                               snapshot.data!
                                                                           ? '\n${context.loc.connected}'
                                                                           : '\n${context.loc.not_connected}',
-                                                                      // ? '\nconnnnn'
-                                                                      // : '\nno conn',
                                                                       style:
                                                                           TextStyle(
                                                                         fontSize:

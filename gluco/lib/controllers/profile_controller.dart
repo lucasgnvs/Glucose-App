@@ -43,6 +43,7 @@ class ProfileController {
   }
 
   ProfileController.fromUser(this._user) {
+    // TODO: localizar date format e tirar pt_BR
     _birthdate.text = DateFormat.yMd('pt_BR').format(_user!.profile.birthday);
     _weight.text = _user!.profile.weight.toString();
     _height.text = _user!.profile.height.toString();
@@ -66,8 +67,7 @@ class ProfileController {
   }
 
   void validate() async {
-    ///// não é a melhor solução, mas enfim, o onchanged do form é
-    /// chamado antes do onchanged dos fields, precisava que fosse o contrario
+    ///// Gambiarra para que o onchanged do form seja chamado depois do onchanged dos fields
     await Future.delayed(const Duration(milliseconds: 1));
     //////
     if (_validationMode == AutovalidateMode.always) {
@@ -163,6 +163,7 @@ class ProfileController {
     _validFormVN.value = _formKey.currentState?.validate() ?? false;
     if (_validFormVN.value) {
       bool response = await API.instance.createUserProfile(
+          // TODO: localizar date format e tirar pt_BR
           DateFormat.yMd('pt_BR').parseStrict(_birthdate.text),
           double.parse(_weight.text.replaceAll(',', '.')),
           double.parse(_height.text.replaceAll(',', '.')),

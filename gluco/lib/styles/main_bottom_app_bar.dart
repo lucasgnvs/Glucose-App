@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'package:gluco/styles/customcolors.dart';
+import 'package:gluco/styles/custom_colors.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
 enum MainBottomAppBar { home, history }

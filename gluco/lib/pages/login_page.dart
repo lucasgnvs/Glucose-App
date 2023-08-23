@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:async_button_builder/async_button_builder.dart';
 import 'package:gluco/services/api.dart';
-import 'package:gluco/styles/customcolors.dart';
-import 'package:gluco/styles/customclippers.dart';
-import 'package:gluco/views/historyvo.dart';
+import 'package:gluco/styles/custom_colors.dart';
+import 'package:gluco/styles/custom_clippers.dart';
+import 'package:gluco/views/history_view.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class LoginPage extends StatefulWidget {
@@ -72,18 +72,10 @@ class _LoginPageState extends State<LoginPage> {
                       child: Center(
                         heightFactor: 1.7,
                         child: Image(
+                          // TODO: Alterar literal para generate
                           image: AssetImage('assets/images/logoblue.png'),
                           width: MediaQuery.of(context).size.width * 0.5,
                         ),
-                        // child: Text(
-                        //   'EGLUCO', // placeholder
-                        //   textAlign: TextAlign.center,
-                        //   style: TextStyle(
-                        //     color: Colors.black,
-                        //     fontSize: 40,
-                        //     inherit: false,
-                        //   ),
-                        // ),
                       ),
                     ),
                   ),
@@ -148,6 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             suffixIcon: IconButton(
                                 onPressed: () {
+                                  // TODO: trocar para streambuilder
                                   setState(
                                     () {
                                       _hidePassword = !_hidePassword;
@@ -170,28 +163,23 @@ class _LoginPageState extends State<LoginPage> {
                           enableSuggestions: false,
                           autocorrect: false,
                         ),
-                        /////// tirei pq não foi implementado ainda
-                        // Padding(padding: EdgeInsets.all(2.0)),
-                        // Align(
-                        //   alignment: Alignment.centerRight,
-                        //   child: TextButton(
-                        //     child: Text(
-                        //       'Esqueci a senha',
-                        //       style: TextStyle(color: CustomColors.lightBlue),
-                        //     ),
-                        //     onPressed: () {},
-                        //   ),
-                        // ),
-                        // Padding(padding: EdgeInsets.all(10.0)),
+                        // TODO: Habilitar quando a API fornecer alteração de senha
+                        /*
+                        Padding(padding: EdgeInsets.all(2.0)),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            child: Text(
+                              'Esqueci a senha',
+                              style: TextStyle(color: CustomColors.lightBlue),
+                            ),
+                            onPressed: () {},
+                          ),
+                        ),
+                        Padding(padding: EdgeInsets.all(10.0)),
+                        */
                         Padding(padding: EdgeInsets.all(30.0)),
                         AsyncButtonBuilder(
-                          child: Text(
-                            context.loc.login,
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
                           loadingWidget: CircularProgressIndicator(
                             color: CustomColors.notwhite,
                             strokeWidth: 3.0,
@@ -201,9 +189,10 @@ class _LoginPageState extends State<LoginPage> {
                               _email.text.trim().toLowerCase(),
                               _password.text.trim(),
                             )) {
+                              // TODO: Atualizar context para variável e evitar linter across async gaps
                               switch (API.instance.responseMessage) {
                                 case APIResponseMessages.success:
-                                  await HistoryVO.fetchHistory();
+                                  await HistoryView.fetchHistory();
                                   await Navigator.popAndPushNamed(
                                       context, '/home');
                                   break;
@@ -216,6 +205,7 @@ class _LoginPageState extends State<LoginPage> {
                               _password.clear();
                               switch (API.instance.responseMessage) {
                                 case APIResponseMessages.notRegistered:
+                                  // TODO: Tirar os setstates e utilizar streambuilder
                                   setState(
                                     () {
                                       _nonexistentEmail = true;
@@ -243,6 +233,7 @@ class _LoginPageState extends State<LoginPage> {
                                   );
                                   break;
                                 case APIResponseMessages.noConnection:
+                                  // TODO: tirar context de async gap
                                   showDialog(
                                     context: context,
                                     builder: (context) {
@@ -263,7 +254,8 @@ class _LoginPageState extends State<LoginPage> {
                                   );
                                   break;
                               }
-                              // só pro botão dar a mensagem certa, não sabia outra forma de fazer
+                              // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
+                              //  escolher uma exceção certa e não uma string
                               throw 'Erro';
                             }
                           },
@@ -283,6 +275,13 @@ class _LoginPageState extends State<LoginPage> {
                               child: child,
                             );
                           },
+                          child: Text(
+                            context.loc.login,
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -326,7 +325,6 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                         TextButton(
-                          child: Text(context.loc.register),
                           style: TextButton.styleFrom(
                             textStyle: TextStyle(
                               fontSize: 16.0,
@@ -344,6 +342,7 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: () async {
                             await Navigator.popAndPushNamed(context, '/signup');
                           },
+                          child: Text(context.loc.register),
                         ),
                       ],
                     ),

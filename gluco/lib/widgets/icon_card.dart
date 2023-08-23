@@ -1,7 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors_in_immutables
 
 import 'package:flutter/material.dart';
-import 'package:gluco/styles/customcolors.dart';
+import 'package:gluco/styles/custom_colors.dart';
 
 class IconCard extends StatelessWidget {
   final Icon icon;

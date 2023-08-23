@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:gluco/services/api.dart';
-import 'package:gluco/styles/customcolors.dart';
-import 'package:gluco/views/historyvo.dart';
+import 'package:gluco/styles/custom_colors.dart';
+import 'package:gluco/views/history_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
@@ -19,6 +19,7 @@ class _SideBarState extends State<SideBar> {
 
   void _launchURL() async {
     if (!await launch(_url, forceWebView: false)) {
+      // TODO: Trocar throw para exceção específica
       throw 'Could not launch $_url';
     }
   }
@@ -30,17 +31,13 @@ class _SideBarState extends State<SideBar> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            // decoration: BoxDecoration(color: Theme.of(context).primaryColor),
             decoration: BoxDecoration(
               color: CustomColors.blueGreen.withOpacity(0.25),
             ),
             child: Image(
+              // TODO: Alterar literal para generate
               image: AssetImage('assets/images/logoblue.png'),
             ),
-            // child: Text(
-            //   'E-Gluco',
-            //   style: Theme.of(context).textTheme.headline6,
-            // ),
           ),
           ListTile(
             leading: Icon(Icons.person),
@@ -62,16 +59,18 @@ class _SideBarState extends State<SideBar> {
               await Navigator.popAndPushNamed(context, '/devices');
             },
           ),
-          // ListTile(
-          //   leading: Icon(Icons.developer_mode),
-          //   title: Text(
-          //     'Dev',
-          //     style: Theme.of(context).textTheme.headline6,
-          //   ),
-          //   onTap: () async {
-          //     await Navigator.popAndPushNamed(context, '/teste');
-          //   },
-          // ),
+          /*
+          ListTile(
+            leading: Icon(Icons.developer_mode),
+            title: Text(
+              'Dev',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            onTap: () async {
+              await Navigator.popAndPushNamed(context, '/teste');
+            },
+          ),
+          */
           ListTile(
             leading: Icon(Icons.info_outline),
             title: Text(
@@ -85,6 +84,7 @@ class _SideBarState extends State<SideBar> {
             },
           ),
           Visibility(
+            visible: true,
             child: ListTile(
               leading: Icon(Icons.logout),
               title: Text(
@@ -92,8 +92,9 @@ class _SideBarState extends State<SideBar> {
                 style: Theme.of(context).textTheme.headline6,
               ),
               onTap: () async {
-                HistoryVO.disposeHistory();
+                HistoryView.disposeHistory();
                 await API.instance.logout();
+                // TODO: async gaps
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   '/login',
@@ -101,7 +102,6 @@ class _SideBarState extends State<SideBar> {
                 );
               },
             ),
-            visible: true,
           ),
         ],
       ),

@@ -3,21 +3,21 @@
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:gluco/db/dbtest.dart';
-import 'package:gluco/services/bluetoothhelper.dart';
-import 'package:gluco/services/customlog.dart';
-import 'package:gluco/pages/devicepage.dart';
-import 'package:gluco/pages/firstloginpage.dart';
-import 'package:gluco/pages/historypage.dart';
-import 'package:gluco/pages/homepage.dart';
-import 'package:gluco/pages/loginpage.dart';
-import 'package:gluco/pages/profilepage.dart';
-import 'package:gluco/pages/signuppage.dart';
-import 'package:gluco/pages/splashscreen.dart';
+import 'package:gluco/db/db_test.dart';
+import 'package:gluco/services/bluetooth_helper.dart';
+import 'package:gluco/services/custom_log.dart';
+import 'package:gluco/pages/device_page.dart';
+import 'package:gluco/pages/first_login_page.dart';
+import 'package:gluco/pages/history_page.dart';
+import 'package:gluco/pages/home_page.dart';
+import 'package:gluco/pages/login_page.dart';
+import 'package:gluco/pages/profile_page.dart';
+import 'package:gluco/pages/signup_page.dart';
+import 'package:gluco/pages/splash_screen.dart';
 import 'package:gluco/services/api.dart';
-import 'package:gluco/services/btletest.dart';
-import 'package:gluco/styles/customcolors.dart';
-import 'package:gluco/views/historyvo.dart';
+import 'package:gluco/services/btle_test.dart';
+import 'package:gluco/styles/custom_colors.dart';
+import 'package:gluco/views/history_view.dart';
 
 String _defaultHome = '/login';
 bool offline = false;
@@ -33,12 +33,12 @@ void main() async {
     switch (API.instance.responseMessage) {
       case APIResponseMessages.success:
         _defaultHome = '/home';
-        await HistoryVO.fetchHistory();
+        await HistoryView.fetchHistory();
         break;
       case APIResponseMessages.offlineMode:
         _defaultHome = '/home';
         offline = true;
-        await HistoryVO.fetchHistory();
+        await HistoryView.fetchHistory();
         break;
       case APIResponseMessages.emptyProfile:
         _defaultHome = '/welcome';

@@ -3,8 +3,8 @@
 import 'package:async_button_builder/async_button_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:gluco/services/api.dart';
-import 'package:gluco/styles/customcolors.dart';
-import 'package:gluco/styles/customclippers.dart';
+import 'package:gluco/styles/custom_colors.dart';
+import 'package:gluco/styles/custom_clippers.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -14,16 +14,12 @@ class SignUpPage extends StatefulWidget {
   State<SignUpPage> createState() => _SignUpPageState();
 }
 
-enum AccountType { normalUser, doctor }
-
 class _SignUpPageState extends State<SignUpPage> {
+  // TODO: Transferir para authenticatecontroller
   late final TextEditingController _name;
   late final TextEditingController _email;
   late final TextEditingController _password;
   late final TextEditingController _crm;
-
-  AccountType? _userType = AccountType.normalUser;
-  bool _normalUser = true;
 
   bool _hidePassword = true;
   bool _emailAlreadyInUse = false;
@@ -90,18 +86,10 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       child: Center(
                         child: Image(
+                          // TODO: Alterar literal para generate
                           image: AssetImage('assets/images/logoblue.png'),
                           width: MediaQuery.of(context).size.width * 0.43,
                         ),
-                        // child: Text(
-                        //   'EGLUCO', // placeholder
-                        //   textAlign: TextAlign.center,
-                        //   style: TextStyle(
-                        //     color: Colors.black,
-                        //     fontSize: 40,
-                        //     inherit: false,
-                        //   ),
-                        // ),
                       ),
                     ),
                   ),
@@ -124,46 +112,6 @@ class _SignUpPageState extends State<SignUpPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          /*
-                          // OPCOES USUARIO COMUM E MEDICO
-                          RadioListTile<AccountType>(
-                            title: Text(
-                              context.loc.normal_user,
-                              style: TextStyle(
-                                  color: _normalUser
-                                      ? CustomColors.lightBlue
-                                      : Colors.blueGrey),
-                            ),
-                            autofocus: true,
-                            activeColor: CustomColors.lightBlue,
-                            value: AccountType.normalUser,
-                            groupValue: _userType,
-                            onChanged: (AccountType? value) {
-                              setState(() {
-                                _userType = value;
-                                _normalUser = true;
-                              });
-                            },
-                          ),
-                          RadioListTile<AccountType>(
-                            title: Text(
-                              context.loc.doctor,
-                              style: TextStyle(
-                                  color: _normalUser
-                                      ? Colors.blueGrey
-                                      : CustomColors.lightBlue),
-                            ),
-                            activeColor: CustomColors.lightBlue,
-                            value: AccountType.doctor,
-                            groupValue: _userType,
-                            onChanged: (AccountType? value) {
-                              setState(() {
-                                _userType = value;
-                                _normalUser = false;
-                              });
-                            },
-                          ),
-*/
                           TextFormField(
                             controller: _name,
                             decoration: InputDecoration(
@@ -197,7 +145,6 @@ class _SignUpPageState extends State<SignUpPage> {
                               }
                               return null;
                             },
-                            // style: TextStyle(color: CustomColors.lightBlue),
                             cursorColor: CustomColors.lightBlue,
                             keyboardType: TextInputType.name,
                             autocorrect: false,
@@ -243,62 +190,10 @@ class _SignUpPageState extends State<SignUpPage> {
                               }
                               return null;
                             },
-                            // style: TextStyle(color: CustomColors.greenBlue),
                             cursorColor: CustomColors.greenBlue,
                             keyboardType: TextInputType.emailAddress,
                           ),
                           Padding(padding: EdgeInsets.all(8.0)),
-
-                          //CAMPO CRM
-                          Container(
-                            child: !_normalUser
-                                ? TextFormField(
-                                    controller: _crm,
-                                    decoration: InputDecoration(
-                                      label: Text(
-                                        'CRM',
-                                        style: TextStyle(
-                                            color: CustomColors.blueGreenlight),
-                                      ),
-                                      enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                          width: 2,
-                                          color: CustomColors.blueGreenlight,
-                                        ),
-                                      ),
-                                      focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                          width: 3,
-                                          color: CustomColors.blueGreenlight,
-                                        ),
-                                      ),
-                                    ),
-                                    // onChanged: (text) {
-                                    //   _isFieldFilled['crm'] = text.isNotEmpty;
-                                    // },
-                                    validator: (text) {
-                                      if (text == null || text.isEmpty) {
-                                        return context
-                                            .loc.generic_error_required_field;
-                                      }
-                                      //validar CRM aqui
-                                      if (text.length != 6) {
-                                        return context
-                                            .loc.register_error_invalid_crm;
-                                      }
-                                      return null;
-                                    },
-                                    // style: TextStyle(color: CustomColors.lightBlue),
-                                    cursorColor: CustomColors.blueGreenlight,
-                                    keyboardType: TextInputType.number,
-                                    autocorrect: false,
-                                  )
-                                : Padding(padding: EdgeInsets.all(0)),
-                          ),
-                          Container(
-                              child: !_normalUser
-                                  ? Padding(padding: EdgeInsets.all(8.0))
-                                  : Padding(padding: EdgeInsets.all(0))),
                           TextFormField(
                             controller: _password,
                             decoration: InputDecoration(
@@ -321,6 +216,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                               suffixIcon: IconButton(
                                   onPressed: () {
+                                    // TODO: trocar para streambuilder
                                     setState(() {
                                       _hidePassword = !_hidePassword;
                                     });
@@ -342,7 +238,6 @@ class _SignUpPageState extends State<SignUpPage> {
                               }
                               return null;
                             },
-                            // style: TextStyle(color: CustomColors.lightGreen),
                             cursorColor: CustomColors.lightGreen,
                             obscureText: _hidePassword,
                             keyboardType: TextInputType.visiblePassword,
@@ -368,15 +263,6 @@ class _SignUpPageState extends State<SignUpPage> {
                                     ),
                                   ),
                                   AsyncButtonBuilder(
-                                    child: Text(
-                                      context.loc.register_view_button,
-                                      style: TextStyle(
-                                        color: CustomColors.notwhite,
-                                        // a cor tá errada, aparecendo cinza por algum motivo (por estar desabilitado será?)
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                    ),
                                     loadingWidget: CircularProgressIndicator(
                                       color: CustomColors.notwhite,
                                       strokeWidth: 3.0,
@@ -423,28 +309,27 @@ class _SignUpPageState extends State<SignUpPage> {
                                                     .instance.responseMessage) {
                                                   case APIResponseMessages
                                                         .alreadyRegistered:
+                                                    // TODO: trocar para streambuilder
                                                     setState(() {
                                                       _emailAlreadyInUse = true;
                                                     });
                                                     break;
                                                 }
-                                                // só pro botão dar a mensagem certa, não sabia outra forma de fazer
+                                                // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
+                                                //  escolher uma exceção certa e não uma string
                                                 throw 'Erro no signup';
                                               }
-                                              if (_normalUser) {
-                                                _crm.clear();
-                                              } else {
-                                                _crm.text.trim();
-                                              }
                                             } else {
-                                              // só pro botão dar a mensagem certa, não sabia outra forma de fazer
+                                              // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
+                                              //  escolher uma exceção certa e não uma string
                                               throw 'Erro no signup';
                                             }
                                           },
                                     builder: (context, child, callback, _) {
                                       return TextButton(
                                         style: TextButton.styleFrom(
-                                          primary: CustomColors.notwhite,
+                                          foregroundColor:
+                                              CustomColors.notwhite,
                                           backgroundColor: isValid
                                               ? CustomColors.lightGreen
                                               : Colors.grey,
@@ -459,6 +344,15 @@ class _SignUpPageState extends State<SignUpPage> {
                                         child: child,
                                       );
                                     },
+                                    child: Text(
+                                      context.loc.register_view_button,
+                                      style: TextStyle(
+                                        // TODO: Corrigir a cor
+                                        color: CustomColors.notwhite,
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               );
@@ -473,6 +367,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
+                                        // TODO: Colocar cor no customcolors
                                         Color.fromARGB(0, 255, 251, 251),
                                         CustomColors.lightGreen,
                                       ],
@@ -497,6 +392,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     gradient: LinearGradient(
                                       colors: [
                                         CustomColors.lightGreen,
+                                        // TODO: Colocar cor no customcolors
                                         Color.fromARGB(0, 255, 250, 250),
                                       ],
                                     ),
@@ -506,13 +402,11 @@ class _SignUpPageState extends State<SignUpPage> {
                             ],
                           ),
                           TextButton(
-                            child: Text(
-                                context.loc.register_view_already_registered),
                             style: TextButton.styleFrom(
+                              foregroundColor: CustomColors.lightGreen,
                               textStyle: TextStyle(
                                 fontSize: 16.0,
                               ),
-                              primary: CustomColors.lightGreen,
                               backgroundColor: CustomColors.notwhite,
                               padding: EdgeInsets.all(10.0),
                               minimumSize:
@@ -527,6 +421,8 @@ class _SignUpPageState extends State<SignUpPage> {
                               await Navigator.popAndPushNamed(
                                   context, '/login');
                             },
+                            child: Text(
+                                context.loc.register_view_already_registered),
                           ),
                         ],
                       ),

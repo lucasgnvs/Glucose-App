@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:async_button_builder/async_button_builder.dart';
-import 'package:gluco/controllers/profilecontroller.dart';
+import 'package:gluco/controllers/profile_controller.dart';
 import 'package:gluco/services/api.dart';
-import 'package:gluco/styles/customcolors.dart';
-import 'package:gluco/styles/dateformatter.dart';
+import 'package:gluco/styles/custom_colors.dart';
+import 'package:gluco/styles/date_formatter.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class FirstLoginPage extends StatefulWidget {
@@ -56,25 +56,25 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                           shape: BoxShape.circle,
                         ),
                         child: ValueListenableBuilder<bool>(
-                            valueListenable: controller.profilePicVN,
-                            builder: (_, hasProfilePic, child) {
-                              return hasProfilePic
-                                  ? CircleAvatar(
-                                      backgroundImage:
-                                          controller.profilePic!.image,
-                                      radius:
-                                          MediaQuery.of(context).size.width *
-                                              0.15 *
-                                              landscapeCorrection,
-                                    )
-                                  : Icon(
-                                      Icons.person,
-                                      size: MediaQuery.of(context).size.width *
-                                          0.3 *
-                                          landscapeCorrection,
-                                      color: Colors.white,
-                                    );
-                            }),
+                          valueListenable: controller.profilePicVN,
+                          builder: (_, hasProfilePic, child) {
+                            return hasProfilePic
+                                ? CircleAvatar(
+                                    backgroundImage:
+                                        controller.profilePic!.image,
+                                    radius: MediaQuery.of(context).size.width *
+                                        0.15 *
+                                        landscapeCorrection,
+                                  )
+                                : Icon(
+                                    Icons.person,
+                                    size: MediaQuery.of(context).size.width *
+                                        0.3 *
+                                        landscapeCorrection,
+                                    color: Colors.white,
+                                  );
+                          },
+                        ),
                       ),
                     ),
                     FloatingActionButton(
@@ -232,7 +232,6 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                               color: CustomColors.greenBlue.withOpacity(1.0))),
                     ),
                     DropdownButtonFormField(
-                      // hint: Text('Selecionar'),
                       value: controller.sex,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
@@ -267,7 +266,6 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                               color: CustomColors.greenBlue.withOpacity(1.0))),
                     ),
                     DropdownButtonFormField(
-                      // hint: Text('Selecionar'),
                       value: controller.diabetes,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
@@ -307,6 +305,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                               ? null
                               : () async {
                                   if (await controller.executeCreate()) {
+                                    // TODO: tirar context de async gap
                                     await Navigator.popAndPushNamed(
                                         context, '/home');
                                   } else {
