@@ -1,5 +1,4 @@
 {
-
     "logout_button": "Sair",
     "cancel": "Cancelar",
     "yes": "Sim",
@@ -23,9 +22,10 @@
     "return_p": "Retornar",
     "send": "Enviar",
     "me": "Eu",
+    "correct": "Corrigir",
     "confirm": "Confirmar",
     "measure": "Medir",
-    "conneted": "Conectado",
+    "connected": "Conectado",
     "not_connected": "Não conectado",
     "my_profile": "Meu Perfil",
     "devices": "Dispositivos",
@@ -40,7 +40,7 @@
     "save": "Salvar",
     "sex": "Sexo",
     "conclude": "Concluir",
-    "helo": "Helo",
+    "hello": "Olá",
 
     "generic_error_required_field": "*Campo Obrigatório",
     "generic_error_prompt": "*Ocorreu um erro",
@@ -52,16 +52,12 @@
     "login_error_wrong_credentials": "*E-mail inválido",
     "login_error_wrong_password": "*Senha inválida",
    
-    "email_text_field_placeholder": "Enter your email here",
-    "password_text_field_placeholder": "Enter your password here",
-
     "register_error_invalid_name": "*Insira um nome válido",
     "register_error_weak_password": "*A senha deve conter no mínimo 6 dígitos",
-    "register_error_email_already_in_use": "*Já existe uma conta cadastrada neste E-mail",
-    "register_error_generic": "Failed to register. Please try again later!",
-    "register_error_invalid_email": "*Insira um E-mail válido",
+    "register_error_email_already_in_use": "*Já existe uma conta cadastrada neste e-mail",
+    "register_error_invalid_email": "*Insira um e-mail válido",
     "register_view_already_registered": "Já tenho uma conta",
-    "register_error_invalid_crm": "*O crm deve conter 6 dígitos",
+    "register_error_invalid_crm": "*O CRM deve conter 6 dígitos",
     "register_view_button": "Concluir Cadastro",
 
     "homepage_view_last_measurement": "Última Medição",
@@ -84,7 +80,7 @@
 
     "devicepage_prompt_watch_connection": "Conexão com o relógio",
     "devicepage_prompt_available_devices": "Dispositivos Disponíveis",
-    "devicepage_error_bluetooth_off": "O bluetooth está desabilidato",
+    "devicepage_error_bluetooth_off": "O Bluetooth está desabilitado",
     "devicepage_error_device_not_found": "Nenhum dispositivo Bluetooth encontrado...",
 
     "firstlogin_prompt_personal_info": "Para continuar, preencha as informações pessoais de cadastro de perfil."

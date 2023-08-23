@@ -25,6 +25,8 @@ bool offline = false;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await initializeDateFormatting('pt_BR', null);
+
   await logInit();
 
   if (await API.instance.login()) {

@@ -31,6 +31,11 @@ class _DevicePageState extends State<DevicePage> {
   StreamController<bool> connecting = StreamController<bool>.broadcast();
   void connectDevice(bool cnt, int i) async {
     connecting.add(true);
+    /* SIMULACAO
+    await Future.delayed(Duration(seconds: 2));
+    devices[i].connected = true;
+    BluetoothHelper.instance.conn();
+    */
     for (final dvc in devices) {
       dvc.connected = false;
     }
@@ -79,7 +84,7 @@ class _DevicePageState extends State<DevicePage> {
             StreamBuilder<bool>(
                 stream: btScan,
                 initialData: false,
-                builder: (context, snapshot) {
+                builder: (contextStreamScan, snapshot) {
                   return Visibility(
                     // se desligar o bluetooth, a mensagem continua aparecendo
                     visible: !snapshot.data! && devices.isNotEmpty,
@@ -106,7 +111,7 @@ class _DevicePageState extends State<DevicePage> {
                 child: StreamBuilder<bool>(
                   stream: btState,
                   initialData: false,
-                  builder: (context, snapshot) {
+                  builder: (contextStreamState, snapshot) {
                     if (!snapshot.data!) {
                       return Center(
                         // se ligar e desligar o bluetooth pode ocorrer DeadObjectException
@@ -121,7 +126,7 @@ class _DevicePageState extends State<DevicePage> {
                       return StreamBuilder<bool>(
                         stream: btScan,
                         initialData: true,
-                        builder: (context, snapshot) {
+                        builder: (contextStreamScan, snapshot) {
                           if (snapshot.data!) {
                             return Center(
                               child: CircularProgressIndicator(
@@ -147,12 +152,12 @@ class _DevicePageState extends State<DevicePage> {
                                 : StreamBuilder<bool>(
                                     stream: btConn,
                                     initialData: true,
-                                    builder: (context, snapshot) {
+                                    builder: (contextStreamConn, snapshot) {
                                       return ListView.separated(
                                         padding: EdgeInsets.symmetric(
                                             horizontal: 20),
                                         itemCount: devices.length,
-                                        itemBuilder: (context, i) {
+                                        itemBuilder: (contextItem, i) {
                                           return ListTile(
                                             title: Text(
                                                 '${devices[i].name} ${devices[i].id}',
@@ -184,7 +189,7 @@ class _DevicePageState extends State<DevicePage> {
                                               onPressed: () {
                                                 showDialog(
                                                   context: context,
-                                                  builder: (context) {
+                                                  builder: (contextDialog) {
                                                     return AlertDialog(
                                                       title: Row(
                                                         mainAxisAlignment:
@@ -194,8 +199,9 @@ class _DevicePageState extends State<DevicePage> {
                                                           StreamBuilder<bool>(
                                                             stream: btConn,
                                                             initialData: true,
-                                                            builder: (context,
-                                                                snapshot) {
+                                                            builder:
+                                                                (contextStreamConn,
+                                                                    snapshot) {
                                                               return RichText(
                                                                 text: TextSpan(
                                                                   text:
@@ -217,6 +223,8 @@ class _DevicePageState extends State<DevicePage> {
                                                                               snapshot.data!
                                                                           ? '\n${context.loc.connected}'
                                                                           : '\n${context.loc.not_connected}',
+                                                                      // ? '\nconnnnn'
+                                                                      // : '\nno conn',
                                                                       style:
                                                                           TextStyle(
                                                                         fontSize:
@@ -234,8 +242,9 @@ class _DevicePageState extends State<DevicePage> {
                                                             stream: connecting
                                                                 .stream,
                                                             initialData: false,
-                                                            builder: (context,
-                                                                snapshot) {
+                                                            builder:
+                                                                (contextStreamConn,
+                                                                    snapshot) {
                                                               if (snapshot
                                                                   .data!) {
                                                                 return CircularProgressIndicator(
@@ -271,7 +280,7 @@ class _DevicePageState extends State<DevicePage> {
                                                               Icons.arrow_back),
                                                           onPressed: () {
                                                             Navigator.pop(
-                                                                context);
+                                                                contextDialog);
                                                           },
                                                         ),
                                                       ],
@@ -282,7 +291,7 @@ class _DevicePageState extends State<DevicePage> {
                                             ),
                                           );
                                         },
-                                        separatorBuilder: (context, i) {
+                                        separatorBuilder: (contextSep, i) {
                                           return Divider(
                                             color: Colors.grey,
                                           );
@@ -303,13 +312,13 @@ class _DevicePageState extends State<DevicePage> {
         floatingActionButton: StreamBuilder<bool>(
           stream: btState,
           initialData: false,
-          builder: (context, snapshot) {
+          builder: (contextStreamState, snapshot) {
             return Visibility(
               visible: snapshot.data!,
               child: StreamBuilder<bool>(
                 stream: btScan,
                 initialData: false,
-                builder: (context, snapshot) {
+                builder: (contextStreamScan, snapshot) {
                   VoidCallback? onPressed;
                   Color color = Colors.grey;
                   if (!snapshot.data!) {
@@ -318,8 +327,8 @@ class _DevicePageState extends State<DevicePage> {
                   }
                   return FloatingActionButton(
                     backgroundColor: color,
-                    child: Icon(Icons.refresh),
                     onPressed: onPressed,
+                    child: Icon(Icons.refresh),
                   );
                 },
               ),

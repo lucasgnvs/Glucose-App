@@ -45,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
           return SingleChildScrollView(
-            keyboardDismissBehavior : ScrollViewKeyboardDismissBehavior.onDrag,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 minHeight: viewportConstraints.maxHeight,
@@ -115,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                           autovalidateMode: AutovalidateMode.always,
                           validator: (text) {
                             if (_nonexistentEmail) {
-                              return  context.loc.login_error_cannot_find_user;
+                              return context.loc.login_error_cannot_find_user;
                             }
                             if (_invalidEmail) {
                               return context.loc.login_error_wrong_credentials;
@@ -248,8 +248,8 @@ class _LoginPageState extends State<LoginPage> {
                                     builder: (context) {
                                       return AlertDialog(
                                         title: Text(context.loc.no_connection),
-                                        content: Text(
-                                            context.loc.generic_error_no_connection),
+                                        content: Text(context
+                                            .loc.generic_error_no_connection),
                                         actions: [
                                           TextButton(
                                             onPressed: () {
@@ -303,7 +303,7 @@ class _LoginPageState extends State<LoginPage> {
                             Padding(
                               padding: EdgeInsets.all(15),
                               child: Text(
-                                "OU",
+                                context.loc.or,
                                 style: TextStyle(
                                   color: CustomColors.blueGreen,
                                   fontSize: 12.0,
@@ -326,7 +326,7 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                         TextButton(
-                          child:  Text(context.loc.register),
+                          child: Text(context.loc.register),
                           style: TextButton.styleFrom(
                             textStyle: TextStyle(
                               fontSize: 16.0,

@@ -102,7 +102,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                       children: [
                         TextSpan(
                           text:
-                              '${context.loc.helo} ${API.instance.currentUser?.name.split(' ')[0]}!\n',
+                              '${context.loc.hello} ${API.instance.currentUser?.name.split(' ')[0]}!\n',
                           style: TextStyle(
                             fontSize: 22.0,
                             fontWeight: FontWeight.bold,
@@ -110,8 +110,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                           ),
                         ),
                         TextSpan(
-                          text:
-                              context.loc.firstlogin_prompt_personal_info,
+                          text: context.loc.firstlogin_prompt_personal_info,
                         ),
                       ],
                     ),

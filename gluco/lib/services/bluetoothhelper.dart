@@ -86,6 +86,21 @@ class BluetoothHelper {
 
   /// Mapeamento dos BluetoothDevices para Devices com inclusão do
   /// dispositivo atualmente conectado
+  /* SIMULACAO
+  List<Device> get devices {
+    return [
+      Device(
+        id: '',
+        name: 'GlucoWatch',
+      )
+    ];
+  }
+
+  void conn() {
+    _connected.add(true);
+  }
+  */
+
   List<Device> get devices {
     List<Device> dvcs = _devices
         .map((d) => Device(id: d.remoteId.str, name: d.localName))
@@ -263,7 +278,7 @@ class BluetoothHelper {
     }
     MeasurementCollected measure = MeasurementCollected(
       id: -1,
-      apparent_glucose: null,
+      apparent_glucose: random.nextInt(15) + 85,
       spo2: random.nextInt(5) + 96,
       pr_rpm: random.nextInt(30) + 60,
       temperature: (((random.nextInt(38) + 35) + random.nextDouble()) * 100)
@@ -278,7 +293,7 @@ class BluetoothHelper {
       minled: minled,
       date: DateTime.now(),
     );
-    // await Future.delayed(Duration(seconds: random.nextInt(2) + 3));
+    await Future.delayed(Duration(seconds: random.nextInt(2) + 3));
     return measure;
   }
 
@@ -300,14 +315,14 @@ class BluetoothHelper {
     List<double> f_4p = [];
     List<double> m_2p = [];
     List<double> f_2p = [];
-    Completer<void> confirm = Completer();
+    Completer<bool> confirm = Completer();
 
     valuesError = [];
 
     // prepara buffer e tx
     List<String> readBuffer = [];
-    await _connectedDevice!.receiver.setNotifyValue(true);
-    Stream<List<int>> readStream = _connectedDevice!.receiver.lastValueStream;
+    await _connectedDevice!.receiver.setNotifyValue(true, timeout: 20);
+    Stream<List<int>> readStream = _connectedDevice!.receiver.onValueReceived;
     // escuta novos valores do rx
     StreamSubscription<List<int>> streamSubs = readStream.listen((hex) {
       String dec = utf8.decode(hex);
@@ -315,16 +330,22 @@ class BluetoothHelper {
       valuesError.add(dec);
       if (dec.contains('\$')) {
         try {
-          confirm.complete();
+          confirm.complete(true);
         } catch (e) {
           log.e('--- Collect :: Complete error');
         }
       }
     });
     // cancela subscrição se ocorrer timeout
-    await confirm.future.timeout(const Duration(seconds: 20));
+    bool completed = await confirm.future.timeout(const Duration(seconds: 20),
+        onTimeout: (() {
+      return false;
+    }));
     await streamSubs.cancel();
-    await _connectedDevice!.receiver.setNotifyValue(false);
+    await _connectedDevice!.receiver.setNotifyValue(false, timeout: 20);
+    if (!completed) {
+      throw TimeoutException;
+    }
 
     // split dos valores e conversão para num
     List<String> valuesStr = [];
@@ -334,7 +355,7 @@ class BluetoothHelper {
       try {
         values.add(num.parse(str));
       } catch (e) {
-        log.e('--- Collect :: Value parse error');
+        log.e('--- Collect :: Value parse error $str');
       }
     }
     try {

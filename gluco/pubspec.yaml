@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.7.0+1
+version: 0.7.1+1
 
 environment:
   sdk: ">=2.16.0 <3.0.0"
@@ -41,11 +41,11 @@ dependencies:
   async_button_builder: ^3.0.0+1
   path_provider: ^2.0.9
   path: ^1.8.2
-  intl: ^0.18.0 #MUDEI ISSO AQUI
+  intl: ^0.18.0
   crypto: ^3.0.2
   flutter_dotenv: ^5.0.2
   shared_preferences: ^2.0.15
-  flutter_blue_plus: ^1.10.9
+  flutter_blue_plus: ^1.12.13
   connectivity_plus: ^4.0.1
   image_picker: ^1.0.1
   image_cropper: ^5.0.0
@@ -54,8 +54,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_localizations: 
-    sdk: flutter
+  # flutter_localizations: 
+  #   sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

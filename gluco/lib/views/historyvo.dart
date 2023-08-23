@@ -57,6 +57,7 @@ abstract class HistoryVO {
     if (measurement.id != -1) {
       // faz uma copia pq a inclusão é por referência
       MeasurementVO _measurementVO = MeasurementVO(measurement);
+      // ARRUMAR FORMATACAO PARA SEGUIR LOCALIZAÇÃO
       String MMMMy = // 'mes, ano'
           DateFormat('MMMM, y', 'pt_BR').format(_measurementVO.date);
       String EEEEd = // 'diasemana, diames'

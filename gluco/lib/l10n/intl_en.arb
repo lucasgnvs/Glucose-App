@@ -1,11 +1,11 @@
 {
-     "logout_button": "Log out",
+    "logout_button": "Log out",
     "cancel": "Cancel",
     "yes": "Yes",
-    "delete": "Delet",
-    "ok": "OK",
+    "delete": "Delete",
+    "ok": "Ok",
     "login": "Log in",
-    "verify_email": "Verify E-mail",
+    "verify_email": "Verify e-mail",
     "register": "Register",
     "password": "Password",
     "email": "E-mail",
@@ -22,7 +22,8 @@
     "return_p": "Return",
     "send": "Send",
     "me": "Me",
-    "confirm": "Confirmar",
+    "correct": "Correct",
+    "confirm": "Confirm",
     "measure": "Measure",
     "connected": "Connected",
     "not_connected": "Not connected",
@@ -39,28 +40,21 @@
     "save": "Save",
     "sex": "Sex",
     "conclude": "Conclude",
-    "helo": "Olá",
+    "hello": "Hello",
 
     "generic_error_required_field": "*Required Field",
     "generic_error_prompt": "An error occurred",
-    "generic_error_unfilled_fields": "*Fill in all the fields",
     "generic_error_no_connection": "No internet connection",
+    "generic_error_unfilled_fields": "*Fill in all the fields",
     "generic_dialog_cancel": "Are you sure you want to cancel?",
 
     "login_error_cannot_find_user": "*Cannot find user",
     "login_error_wrong_credentials": "*Invalid e-mail",
     "login_error_wrong_password": "*Invalid password",
     
-    "login_error_auth_error": "Authentication error",
-
-    "login_view_prompt": "Please log in to your account in order to interact with and create notes!",
-    
-    "login_view_not_registered_yet": "Not registered yet? Register here!",
-
     "register_error_invalid_name": "*Fill in a valid name",
     "register_error_weak_password": "The password needs at least 6 characters!",
     "register_error_email_already_in_use": "This email is already registered to another user. Please choose another email!",
-    "register_error_generic": "Failed to register. Please try again later!",
     "register_error_invalid_email": "The email address you entered appears to be invalid. Please try another email address!",
     "register_view_already_registered": "Already registered? Login here!",
     "register_error_invalid_crm": "*The CRM needs to contain 6 digits",
@@ -82,7 +76,7 @@
     "homepage_prompt_go_to_devicepage": "Go to the devices page",
     
     "historypage_measurement_history": "Measurement History",
-    "historypage_view_measurements": "There are no recent measuraments",
+    "historypage_view_measurements": "There are no recent measurements",
 
     "devicepage_prompt_watch_connection": "Connection with the watch",
     "devicepage_prompt_available_devices": "Available Devices",

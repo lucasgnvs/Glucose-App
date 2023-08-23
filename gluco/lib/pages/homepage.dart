@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, must_be_immutable, prefer_const_constructors, use_build_context_synchronously, empty_catches
+// ignore_for_file: use_key_in_widget_constructors, must_be_immutable, prefer_const_constructors, empty_catches
 
 import 'dart:async';
 
@@ -8,6 +8,7 @@ import 'package:gluco/db/databasehelper.dart';
 import 'package:gluco/models/measurement.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/services/bluetoothhelper.dart';
+import 'package:gluco/services/customlog.dart';
 import 'package:gluco/styles/defaultappbar.dart';
 import 'package:gluco/styles/mainbottomappbar.dart';
 import 'package:gluco/styles/customcolors.dart';
@@ -141,7 +142,7 @@ class _HomePageState extends State<HomePage> {
                     textAlign: TextAlign.center,
                     text: TextSpan(
                       text:
-                          '${context.loc.homepage_view_last_measurement} : ${MediaQuery.of(context).orientation == Orientation.portrait ? '\n' : ' '}',
+                          '${context.loc.homepage_view_last_measurement}: ${MediaQuery.of(context).orientation == Orientation.portrait ? '\n' : ' '}',
                       style: TextStyle(
                         color: Colors.grey[700],
                         fontSize: 16.0,
@@ -149,7 +150,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         TextSpan(
                           text: HistoryVO.currentMeasurement.id != -1
-                              ? DateFormat('d MMM, E. H:mm', 'pt_BR')
+                              ? DateFormat('d MMM, E H:mm', 'pt_BR')
                                   .format(HistoryVO.currentMeasurement.date)
                                   .toUpperCase()
                               : context.loc.no_data,
@@ -200,7 +201,7 @@ class _HomePageState extends State<HomePage> {
               stream: btConn,
               // stream: Stream.value(true), // TESTE BOTÃAAAAAAAO
               initialData: false,
-              builder: (context, snapshot) {
+              builder: (contextStream, snapshot) {
                 return AsyncButtonBuilder(
                   loadingWidget: CircularProgressIndicator(
                     color: Colors.white,
@@ -212,6 +213,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   onPressed: () async {
                     late MeasurementCollected measurement;
+
                     try {
                       measurement = await BluetoothHelper.instance.collect();
                     } catch (e) {
@@ -220,7 +222,7 @@ class _HomePageState extends State<HomePage> {
                           .homepage_error_measurement; // pro async_button mostrar ícone certo
                     }
                     bool response = false;
-                    _dialogMeasurement(context, measurement, response);
+                    response = await _dialogMeasurement(context, measurement);
                     _isPacientSelected = false;
                     _dropdownValue = null;
                     if (!response) {
@@ -229,26 +231,28 @@ class _HomePageState extends State<HomePage> {
                     }
                     /////////////////// futuro
                     // MeasurementCompleted measurement = await API.instance.getMeasurement();
-                    // DatabaseHelper.instance
+                    // await DatabaseHelper.instance
                     //     .insertMeasurement(API.instance.currentUser!, measurement);
                     ///////////////////
                     /// SIMULAÇÃO
-                    // MeasurementCollected ms = measurement;
-                    // MeasurementCompleted mc = HistoryVO.currentMeasurement;
-                    // mc.id++;
-                    // mc.spo2 = ms.spo2;
-                    // mc.pr_rpm = ms.pr_rpm;
-                    // mc.glucose = ms.apparent_glucose!;
-                    // mc.date = ms.date;
-                    // HistoryVO.updateMeasurementsMap();
-                    // await DatabaseHelper.instance.insertMeasurementCompleted(
-                    //     API.instance.currentUser!, mc);
-                    // setState(() {
-                    //   // HistoryVO.disposeHistory();
-                    //   // HistoryVO.fetchHistory();
-                    // });
+                    //measurement = await BluetoothHelper.instance.collect_rand();
+                    MeasurementCollected ms = measurement;
+                    MeasurementCompleted mc = HistoryVO.currentMeasurement;
+                    mc.id++;
+                    mc.spo2 = ms.spo2;
+                    mc.pr_rpm = ms.pr_rpm;
+                    mc.glucose = ms.apparent_glucose!;
+                    mc.date = ms.date;
+                    HistoryVO.updateMeasurementsMap();
+                    await DatabaseHelper.instance.insertMeasurementCompleted(
+                        API.instance.currentUser!, mc);
+                    setState(() {
+                      HistoryVO.disposeHistory();
+                      HistoryVO.fetchHistory();
+                    });
+                    /////////
                   },
-                  builder: (context, child, callback, _) {
+                  builder: (contextButton, child, callback, _) {
                     Color color = CustomColors.greenBlue.withOpacity(1.0);
                     if (!snapshot.data!) {
                       color = Colors.grey;
@@ -289,9 +293,9 @@ void Function(Duration) _dialogNoConnection(
     BuildContext context, HomePage widget) {
   return (_) async {
     if (widget.offline && widget.popup) {
-      showDialog(
+      await showDialog(
         context: context,
-        builder: (context) {
+        builder: (contextNoConn) {
           return AlertDialog(
             title: Text(context.loc.generic_error_no_connection),
             content: Text(context.loc.homepage_view_no_connection),
@@ -301,7 +305,7 @@ void Function(Duration) _dialogNoConnection(
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(contextNoConn).pop();
                 },
                 child: Text(context.loc.ok),
               )
@@ -318,7 +322,7 @@ Future<void> _dialogErrorBluetooth(BuildContext context) async {
   await showDialog(
     barrierDismissible: false,
     context: context,
-    builder: (context) {
+    builder: (contextErrorBlue) {
       return AlertDialog(
         title: Text(context.loc.homepage_error_bluetooth),
         content: SingleChildScrollView(
@@ -332,7 +336,7 @@ Future<void> _dialogErrorBluetooth(BuildContext context) async {
         actions: [
           TextButton(
             onPressed: (() {
-              Navigator.pop(context);
+              Navigator.pop(contextErrorBlue);
             }),
             child: Text(context.loc.return_p),
           )
@@ -342,9 +346,10 @@ Future<void> _dialogErrorBluetooth(BuildContext context) async {
   );
 }
 
-Future<void> _dialogMeasurement(BuildContext context,
-    MeasurementCollected measurement, bool response) async {
+Future<bool> _dialogMeasurement(
+    BuildContext context, MeasurementCollected measurement) async {
   final formKey = GlobalKey<FormState>();
+  bool response = false;
   await showDialog(
     barrierDismissible: false,
     context: context,
@@ -398,7 +403,7 @@ Future<void> _dialogMeasurement(BuildContext context,
         actions: [
           TextButton(
             onPressed: () async {
-              await _dialogConfirmCancel(contextMeasurement);
+              await _dialogConfirmCancel(context, contextMeasurement);
             },
             child: Text(
               context.loc.cancel,
@@ -419,24 +424,27 @@ Future<void> _dialogMeasurement(BuildContext context,
                 throw 'Form inválido';
               }
               measurement.apparent_glucose = double.parse(controller.text);
-              await _dialogConfirmMeasurement(
-                  contextMeasurement, measurement, response);
+              response = await _dialogConfirmMeasurement(
+                  context, contextMeasurement, measurement);
+              Navigator.pop(contextMeasurement); // CORRIGIR NAO FUNCIONA
             },
           )
         ],
       );
     },
   );
+  return response;
 }
 
-Future<void> _dialogConfirmCancel(BuildContext contextMeasurement) async {
+Future<void> _dialogConfirmCancel(
+    BuildContext context, BuildContext contextMeasurement) async {
   await showDialog(
     barrierDismissible: false,
     barrierColor: Colors.transparent,
     context: contextMeasurement,
     builder: (contextCancel) {
       return AlertDialog(
-        title: Text(contextMeasurement.loc.generic_dialog_cancel),
+        title: Text(context.loc.generic_dialog_cancel),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
@@ -445,10 +453,10 @@ Future<void> _dialogConfirmCancel(BuildContext contextMeasurement) async {
             style: TextButton.styleFrom(backgroundColor: Colors.red[900]),
             onPressed: () {
               Navigator.pop(contextCancel);
-              Navigator.pop(contextMeasurement);
+              Navigator.pop(contextMeasurement); // talvez seja um problema
             },
             child: Text(
-              'Cancelar',
+              context.loc.cancel,
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -459,7 +467,7 @@ Future<void> _dialogConfirmCancel(BuildContext contextMeasurement) async {
               Navigator.pop(contextCancel);
             },
             child: Text(
-              contextMeasurement.loc.homepage_prompt_continue_measurement,
+              context.loc.homepage_prompt_continue_measurement,
               style: TextStyle(
                 color: Colors.white,
               ),
@@ -471,21 +479,22 @@ Future<void> _dialogConfirmCancel(BuildContext contextMeasurement) async {
   );
 }
 
-Future<void> _dialogConfirmMeasurement(BuildContext contextMeasurement,
-    MeasurementCollected measurement, bool response) async {
-  showDialog(
+Future<bool> _dialogConfirmMeasurement(BuildContext context,
+    BuildContext contextMeasurement, MeasurementCollected measurement) async {
+  bool response = false;
+  await showDialog(
     barrierDismissible: false,
     barrierColor: Colors.transparent,
     context: contextMeasurement,
     builder: (contextConfirm) {
       return AlertDialog(
-        title: Text(contextMeasurement.loc.homepage_prompt_confirm_data),
+        title: Text(context.loc.homepage_prompt_confirm_data),
         content: Text(
 
             // ALT
             // '''Paciente: $_dropdownValue\n
             // '''
-            '${contextMeasurement.loc.glucose} : ${measurement.apparent_glucose}'),
+            '${context.loc.glucose} : ${measurement.apparent_glucose}'),
         // '''),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
@@ -496,21 +505,22 @@ Future<void> _dialogConfirmMeasurement(BuildContext contextMeasurement,
               Navigator.pop(contextConfirm);
             },
             child: Text(
-              'Corrigir',
+              context.loc.correct,
               style: TextStyle(color: Colors.grey),
             ),
           ),
           AsyncButtonBuilder(
             onPressed: () async {
-              response = await API.instance
-                  .postMeasurements(measurement, contextMeasurement.loc.me);
+              response = await API.instance.postMeasurements(measurement, 'Eu');
               // _dropdownValue!); // ALT
               if (!response) {
-                DatabaseHelper.instance.insertMeasurementCollected(
+                await DatabaseHelper.instance.insertMeasurementCollected(
                     API.instance.currentUser!, measurement);
               }
-              await _dialogSentMeasurement(
-                  contextMeasurement, contextConfirm, measurement, response);
+              await _dialogSentMeasurement(context, contextMeasurement,
+                  contextConfirm, measurement, response);
+              Navigator.pop(contextConfirm);
+              // Navigator.pop(contextMeasurement); // TALVEZ BOTAR FORA DO SHOWDIALOG
             },
             builder: (cont, child, callback, _) {
               return TextButton(
@@ -521,7 +531,7 @@ Future<void> _dialogConfirmMeasurement(BuildContext contextMeasurement,
               );
             },
             child: Text(
-              contextMeasurement.loc.confirm,
+              context.loc.confirm,
               style: TextStyle(
                 color: Colors.white,
               ),
@@ -531,22 +541,24 @@ Future<void> _dialogConfirmMeasurement(BuildContext contextMeasurement,
       );
     },
   );
+  return response;
 }
 
 Future<void> _dialogSentMeasurement(
+    BuildContext context,
     BuildContext contextMeasurement,
     BuildContext contextConfirm,
     MeasurementCollected measurement,
     bool response) async {
-  showDialog(
+  await showDialog(
     barrierDismissible: false,
     barrierColor: Colors.transparent,
     context: contextConfirm,
     builder: (contextSent) {
       return AlertDialog(
         title: Text(response
-            ? contextConfirm.loc.homepage_prompt_measurement_sent
-            : contextConfirm.loc.homepage_error_measurement_not_sent),
+            ? context.loc.homepage_prompt_measurement_sent
+            : context.loc.homepage_error_measurement_not_sent),
         // ALT
         content:
             // response
@@ -570,10 +582,10 @@ Future<void> _dialogSentMeasurement(
           TextButton(
             onPressed: (() {
               Navigator.pop(contextSent);
-              Navigator.pop(contextConfirm);
-              Navigator.pop(contextMeasurement);
+              // Navigator.pop(contextConfirm);
+              // Navigator.pop(contextMeasurement);
             }),
-            child: Text(response ? 'Ok!' : contextConfirm.loc.return_p),
+            child: Text(response ? 'Ok!' : context.loc.return_p),
           )
         ],
       );
@@ -586,7 +598,7 @@ Future<void> Function()? _dialogNoDevice(BuildContext context) {
     await showDialog(
       useRootNavigator: false,
       context: context,
-      builder: (context) {
+      builder: (contextNoDev) {
         return AlertDialog(
           title: Text(context.loc.homepage_error_device_not_connected),
           content: Text(context.loc.homepage_prompt_connect_device),

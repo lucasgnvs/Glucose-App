@@ -6,7 +6,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 final LogFilter _filter = ProductionFilter();
-final LogPrinter _printer = SimplePrinter(printTime: true);
+final LogPrinter _printer = SimplePrinter(printTime: true, colors: false);
 late final LogOutput _output;
 const String _fileName = 'eg.log';
 

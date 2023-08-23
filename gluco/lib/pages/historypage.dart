@@ -22,7 +22,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    bool _isSameYear = _monthsMap.keys
+    bool isSameYear = _monthsMap.keys
             .map((monthYear) {
               return monthYear.substring(monthYear.indexOf(RegExp(r'[0-9]')));
             })
@@ -42,7 +42,8 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
       ),
       child: Scaffold(
-        appBar: defaultAppBar(title: context.loc.historypage_measurement_history),
+        appBar:
+            defaultAppBar(title: context.loc.historypage_measurement_history),
         bottomNavigationBar:
             mainBottomAppBar(context, MainBottomAppBar.history),
         body: Container(
@@ -59,6 +60,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   child: Text(
                     context.loc.historypage_view_measurements,
                     style: Theme.of(context).textTheme.headline6,
+                    textAlign: TextAlign.center,
                   ),
                 )
               : ListView.builder(
@@ -81,7 +83,7 @@ class _HistoryPageState extends State<HistoryPage> {
                               child: Text(
                                 // se houverem medidas de anos diferentes, o mês mostra o ano também,
                                 // caso contrário só o nome do mês
-                                _isSameYear
+                                isSameYear
                                     ? monthKey.substring(
                                         0, monthKey.indexOf(','))
                                     : monthKey,
@@ -134,7 +136,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                       setState(() {
                                         _monthsMap[monthKey]![dayKey]
                                             ?.elementAt(panelIndex)
-                                            .isExpanded = !isExpanded;
+                                            .isExpanded = isExpanded;
                                       });
                                     }),
                                     children: _monthsMap[monthKey]![dayKey]!
