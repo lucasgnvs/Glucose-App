@@ -434,7 +434,9 @@ Future<bool> _dialogMeasurement(
               response = await _dialogConfirmMeasurement(
                   context, contextMeasurement, measurement);
               // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
-              Navigator.pop(contextMeasurement);
+              if (response) {
+                Navigator.pop(contextMeasurement);
+              }
             },
           )
         ],
@@ -527,6 +529,7 @@ Future<bool> _dialogConfirmMeasurement(BuildContext context,
               // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
               await _dialogSentMeasurement(context, contextMeasurement,
                   contextConfirm, measurement, response);
+              response = true;
               Navigator.pop(contextConfirm);
             },
             builder: (cont, child, callback, _) {
