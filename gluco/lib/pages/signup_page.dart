@@ -2,7 +2,8 @@
 
 import 'package:async_button_builder/async_button_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:gluco/services/api.dart';
+import 'package:gluco/controllers/auth_controller.dart';
+// import 'package:gluco/services/api.dart';
 import 'package:gluco/styles/custom_colors.dart';
 import 'package:gluco/styles/custom_clippers.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
@@ -15,43 +16,21 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  // TODO: Transferir para authenticatecontroller
-  late final TextEditingController _name;
-  late final TextEditingController _email;
-  late final TextEditingController _password;
-  late final TextEditingController _crm;
+  late final AuthController controller;
 
-  bool _hidePassword = true;
-  bool _emailAlreadyInUse = false;
+  final ValueNotifier<bool> _hidePwdVN = ValueNotifier<bool>(true);
 
   @override
   void initState() {
-    _name = TextEditingController();
-    _email = TextEditingController();
-    _password = TextEditingController();
-    _crm = TextEditingController();
+    controller = AuthController(context);
     super.initState();
   }
 
   @override
   void dispose() {
-    _name.dispose();
-    _email.dispose();
-    _password.dispose();
-    _crm.dispose();
-    _validFormVN.dispose();
+    controller.dispose();
     super.dispose();
   }
-
-  final Map<String, bool> _isFieldFilled = {
-    'name': false,
-    'email': false,
-    'password': false,
-  };
-
-  AutovalidateMode _validationMode = AutovalidateMode.disabled;
-  final ValueNotifier<bool> _validFormVN = ValueNotifier<bool>(false);
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -97,23 +76,14 @@ class _SignUpPageState extends State<SignUpPage> {
                     padding: EdgeInsets.only(top: 10.0, bottom: 40.0),
                     width: MediaQuery.of(context).size.width * 0.9,
                     child: Form(
-                      key: _formKey,
-                      autovalidateMode: _validationMode,
-                      onChanged: () async {
-                        await Future.delayed(Duration(milliseconds: 1));
-                        if (_validationMode == AutovalidateMode.always) {
-                          _validFormVN.value =
-                              _formKey.currentState?.validate() ?? false;
-                        } else {
-                          _validFormVN.value =
-                              _isFieldFilled.values.every((element) => element);
-                        }
-                      },
+                      key: controller.formKey,
+                      autovalidateMode: controller.validationMode,
+                      onChanged: controller.validate,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           TextFormField(
-                            controller: _name,
+                            controller: controller.name,
                             decoration: InputDecoration(
                               label: Text(
                                 context.loc.full_name,
@@ -132,26 +102,14 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                               ),
                             ),
-                            onChanged: (text) {
-                              _isFieldFilled['name'] = text.isNotEmpty;
-                            },
-                            validator: (text) {
-                              if (text == null || text.isEmpty) {
-                                return context.loc.generic_error_required_field;
-                              }
-                              if (!RegExp(r"^[\p{Letter}'\- ]+$", unicode: true)
-                                  .hasMatch(text)) {
-                                return context.loc.register_error_invalid_name;
-                              }
-                              return null;
-                            },
+                            validator: controller.validatorName,
                             cursorColor: CustomColors.lightBlue,
                             keyboardType: TextInputType.name,
                             autocorrect: false,
                           ),
                           Padding(padding: EdgeInsets.all(8.0)),
                           TextFormField(
-                            controller: _email,
+                            controller: controller.email,
                             decoration: InputDecoration(
                               label: Text(
                                 context.loc.email,
@@ -170,83 +128,57 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                               ),
                             ),
-                            onChanged: (text) {
-                              _isFieldFilled['email'] = text.isNotEmpty;
-                              _emailAlreadyInUse = false;
-                            },
-                            validator: (text) {
-                              if (text == null || text.isEmpty) {
-                                return context.loc.generic_error_required_field;
-                              }
-                              if (_emailAlreadyInUse) {
-                                return context
-                                    .loc.register_error_email_already_in_use;
-                              }
-                              if (!RegExp(
-                                      r"^[a-zA-Z0-9\.]+@[a-zA-Z]+(\.[a-zA-Z]+)+$",
-                                      unicode: true)
-                                  .hasMatch(text)) {
-                                return context.loc.register_error_invalid_email;
-                              }
-                              return null;
-                            },
+                            onChanged: controller.onChangedEmail,
+                            validator: controller.validatorEmail,
                             cursorColor: CustomColors.greenBlue,
                             keyboardType: TextInputType.emailAddress,
                           ),
                           Padding(padding: EdgeInsets.all(8.0)),
-                          TextFormField(
-                            controller: _password,
-                            decoration: InputDecoration(
-                              label: Text(
-                                context.loc.password,
-                                style:
-                                    TextStyle(color: CustomColors.lightGreen),
-                              ),
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  width: 2,
-                                  color: CustomColors.lightGreen,
+                          ValueListenableBuilder<bool>(
+                            valueListenable: _hidePwdVN,
+                            builder: (_, isHidden, child) {
+                              return TextFormField(
+                                controller: controller.password,
+                                decoration: InputDecoration(
+                                  label: Text(
+                                    context.loc.password,
+                                    style: TextStyle(
+                                        color: CustomColors.lightGreen),
+                                  ),
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      width: 2,
+                                      color: CustomColors.lightGreen,
+                                    ),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      width: 3,
+                                      color: CustomColors.lightGreen,
+                                    ),
+                                  ),
+                                  suffixIcon: IconButton(
+                                      onPressed: () {
+                                        _hidePwdVN.value = !_hidePwdVN.value;
+                                      },
+                                      icon: Icon(isHidden
+                                          ? Icons.visibility_off
+                                          : Icons.visibility),
+                                      color: CustomColors.lightGreen),
                                 ),
-                              ),
-                              focusedBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  width: 3,
-                                  color: CustomColors.lightGreen,
-                                ),
-                              ),
-                              suffixIcon: IconButton(
-                                  onPressed: () {
-                                    // TODO: trocar para streambuilder
-                                    setState(() {
-                                      _hidePassword = !_hidePassword;
-                                    });
-                                  },
-                                  icon: Icon(_hidePassword
-                                      ? Icons.visibility_off
-                                      : Icons.visibility),
-                                  color: CustomColors.lightGreen),
-                            ),
-                            onChanged: (text) {
-                              _isFieldFilled['password'] = text.isNotEmpty;
+                                onChanged: controller.onChangedPassword,
+                                validator: controller.validatorPassword,
+                                cursorColor: CustomColors.lightGreen,
+                                obscureText: isHidden,
+                                keyboardType: TextInputType.visiblePassword,
+                                enableSuggestions: false,
+                                autocorrect: false,
+                              );
                             },
-                            validator: (text) {
-                              if (text == null || text.isEmpty) {
-                                return context.loc.generic_error_required_field;
-                              }
-                              if (text.length < 6) {
-                                return context.loc.register_error_weak_password;
-                              }
-                              return null;
-                            },
-                            cursorColor: CustomColors.lightGreen,
-                            obscureText: _hidePassword,
-                            keyboardType: TextInputType.visiblePassword,
-                            enableSuggestions: false,
-                            autocorrect: false,
                           ),
                           Padding(padding: EdgeInsets.all(8.0)),
                           ValueListenableBuilder<bool>(
-                            valueListenable: _validFormVN,
+                            valueListenable: controller.validFormVN,
                             builder: (_, isValid, child) {
                               return Column(
                                 children: [
@@ -271,54 +203,10 @@ class _SignUpPageState extends State<SignUpPage> {
                                     onPressed: !isValid
                                         ? null
                                         : () async {
-                                            _validationMode =
-                                                AutovalidateMode.always;
-                                            _validFormVN.value = _formKey
-                                                    .currentState
-                                                    ?.validate() ??
-                                                false;
-                                            if (_validFormVN.value) {
-                                              if (await API.instance.signUp(
-                                                  _name.text
-                                                      .trim()
-                                                      .split(RegExp(' +'))
-                                                      .map((t) {
-                                                    return t[0].toUpperCase() +
-                                                        t
-                                                            .substring(1)
-                                                            .toLowerCase();
-                                                  }).join(' '),
-                                                  _email.text
-                                                      .trim()
-                                                      .toLowerCase(),
-                                                  _password.text.trim())) {
-                                                ///////
-                                                if (await API.instance.login(
-                                                    _email.text
-                                                        .trim()
-                                                        .toLowerCase(),
-                                                    _password.text.trim())) {
-                                                  await Navigator
-                                                      .popAndPushNamed(
-                                                          context, '/welcome');
-                                                }
-                                                ///////
-                                              } else {
-                                                _password.clear();
-                                                switch (API
-                                                    .instance.responseMessage) {
-                                                  case APIResponseMessages
-                                                        .alreadyRegistered:
-                                                    // TODO: trocar para streambuilder
-                                                    setState(() {
-                                                      _emailAlreadyInUse = true;
-                                                    });
-                                                    break;
-                                                }
-                                                // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
-                                                //  escolher uma exceção certa e não uma string
-                                                throw 'Erro no signup';
-                                              }
+                                            if (await controller
+                                                .executeSignUp()) {
+                                              await Navigator.popAndPushNamed(
+                                                  context, '/welcome');
                                             } else {
                                               // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
                                               //  escolher uma exceção certa e não uma string

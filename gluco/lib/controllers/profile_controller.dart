@@ -7,6 +7,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gluco/models/user.dart';
 import 'package:gluco/services/api.dart';
+import 'package:gluco/extensions/buildcontext/loc.dart';
 
 class ProfileController {
   User? _user;
@@ -25,6 +26,7 @@ class ProfileController {
 
   String? sex;
   String? diabetes;
+  // TODO: alterar os literais para context.loc
   List<String> get sexList => ['Masculino', 'Feminino'];
   List<String> get diabetesList => ['Tipo 1', 'Tipo 2', 'Não tenho diabetes'];
 
@@ -38,11 +40,13 @@ class ProfileController {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   GlobalKey<FormState> get formKey => _formKey;
 
-  ProfileController() {
+  final BuildContext context;
+
+  ProfileController(this.context) {
     _validationMode = AutovalidateMode.disabled;
   }
 
-  ProfileController.fromUser(this._user) {
+  ProfileController.fromUser(this.context, this._user) {
     // TODO: localizar date format e tirar pt_BR
     _birthdate.text = DateFormat.yMd('pt_BR').format(_user!.profile.birthday);
     _weight.text = _user!.profile.weight.toString();

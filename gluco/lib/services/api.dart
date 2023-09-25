@@ -56,7 +56,7 @@ class API {
   String? _responseMessage;
   String get responseMessage {
     String message = _responseMessage ?? '';
-    _responseMessage = null;
+    // _responseMessage = null;
     return message;
   }
 

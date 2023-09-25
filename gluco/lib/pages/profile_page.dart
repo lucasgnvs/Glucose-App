@@ -19,8 +19,13 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   User user = API.instance.currentUser!;
 
-  ProfileController controller =
-      ProfileController.fromUser(API.instance.currentUser!);
+  late final ProfileController controller;
+
+  @override
+  void initState() {
+    controller = ProfileController.fromUser(context, API.instance.currentUser!);
+    super.initState();
+  }
 
   @override
   void dispose() {

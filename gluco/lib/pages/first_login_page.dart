@@ -16,7 +16,13 @@ class FirstLoginPage extends StatefulWidget {
 }
 
 class _FirstLoginPageState extends State<FirstLoginPage> {
-  ProfileController controller = ProfileController();
+  late final ProfileController controller;
+
+  @override
+  void initState() {
+    controller = ProfileController(context);
+    super.initState();
+  }
 
   @override
   void dispose() {
