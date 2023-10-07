@@ -66,7 +66,7 @@ class API {
   /// Requisição para solicitação de novo token quando este expira,
   /// utilizando o refresh token, quando ambos expiram é necessário logar novamente
   Future<bool> _refreshToken() async {
-    Uri url = Uri.https(_authority, '/token');
+    Uri url = Uri.https(_authority, '/refresh_token');
 
     Response response = await _client.get(
       url,
@@ -210,7 +210,7 @@ class API {
 
   /// Requisição de cadastro de usuário
   Future<bool> signUp(String name, String email, String password) async {
-    Uri url = Uri.https(_authority, '/user/signup');
+    Uri url = Uri.https(_authority, '/signup/user');
 
     SignUpRequestModel model =
         SignUpRequestModel(name: name, email: email, password: password);
@@ -238,6 +238,11 @@ class API {
     return false;
   }
 
+  // TODO: implementar recuperacao de senha
+  // Future<bool> changePassword(){
+  //   Uri url = Uri.https(_authority, '/change_password/${client_id!}');
+  // }
+
   Future<bool> createUserProfile(
     DateTime birthday,
     double weight,
@@ -251,7 +256,7 @@ class API {
         diabetes_type == 'T2' ||
         diabetes_type == 'NP');
 
-    Uri url = Uri.https(_authority, '/profile/${_client_id!}/user');
+    Uri url = Uri.https(_authority, '/user/${_client_id!}/create_profile');
 
     Profile profile = Profile(
       birthday: birthday,
@@ -302,7 +307,7 @@ class API {
         diabetes_type == 'T2' ||
         diabetes_type == 'NP');
 
-    Uri url = Uri.https(_authority, '/update_profile/${_client_id!}');
+    Uri url = Uri.https(_authority, '/user/${_client_id!}/update_profile');
 
     Profile profile = Profile(
       birthday: birthday,
@@ -341,7 +346,7 @@ class API {
 
   // Requisição para recuperar nome e email do usuário
   Future<bool> _fetchUserInfo() async {
-    Uri url = Uri.https(_authority, '/user_info/${_client_id!}');
+    Uri url = Uri.https(_authority, '/user/${_client_id!}/info');
 
     Response response = await _client.get(
       url,
@@ -370,7 +375,7 @@ class API {
 
   /// Requisição para recuperar perfil do usuário
   Future<bool> _fetchUserProfile() async {
-    Uri url = Uri.https(_authority, '/profile/${_client_id!}');
+    Uri url = Uri.https(_authority, '/user/${_client_id!}/profile');
 
     Response response = await _client.get(
       url,
@@ -445,7 +450,7 @@ class API {
   }
 
   Future<bool> _postMeasurements(MeasurementCollected measurement) async {
-    Uri url = Uri.https(_authority, '/measure/${_client_id!}/glucose');
+    Uri url = Uri.https(_authority, '/measure/${_client_id!}/create');
 
     Response response = await _client.post(
       url,
@@ -482,9 +487,10 @@ class API {
 
   /// Busca tantas medições do banco remoto
   // TODO: Implementar
-  @Deprecated('Não tem endpoint pra isso ainda')
-  Future<List<MeasurementCompleted>> fetchMeasurements() async {
-    Uri url = Uri.https(_authority, '/measurements');
+  @Deprecated('Não tem endpoint pra isso ainda, tem sim')
+  Future<List<MeasurementCompleted>> fetchMeasurements(
+      {int amount = 30, int offset = 0}) async {
+    Uri url = Uri.https(_authority, '/measure/${_client_id!}/$amount/$offset');
 
     List<MeasurementCompleted> measurementsList = <MeasurementCompleted>[];
 
