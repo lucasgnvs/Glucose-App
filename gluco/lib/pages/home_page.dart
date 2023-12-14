@@ -519,6 +519,7 @@ Future<bool> _dialogConfirmMeasurement(BuildContext context,
           ),
           AsyncButtonBuilder(
             onPressed: () async {
+              // TODO: não existe client_id 'Eu'
               response = await API.instance.postMeasurements(measurement, 'Eu');
               // TODO: Inserir campo do paciente no método post
               // _dropdownValue!);

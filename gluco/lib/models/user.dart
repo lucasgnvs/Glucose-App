@@ -2,12 +2,14 @@ class User {
   int id;
   String name;
   String email;
+  String type;
   late Profile profile;
 
   User({
     this.id = -1,
     this.name = '', // talvez venha a ser um problema
     this.email = '',
+    this.type = '',
   });
 
   factory User.fromMap(Map<String, dynamic> json) {
@@ -15,6 +17,7 @@ class User {
       id: json['iduser'],
       name: json['name'],
       email: json['email'],
+      type: json['type'] ?? 'user',
     );
     user.profile = Profile.fromMap(json);
     return user;
@@ -25,6 +28,7 @@ class User {
       // 'iduser': id,
       'name': name,
       'email': email,
+      // 'type': type, // TODO: o bd local não tem esse dado
     };
     _data.addAll(profile.toMap());
     return _data;
@@ -32,7 +36,6 @@ class User {
 }
 
 class Profile {
-  // TODO: por que não é Date?
   DateTime birthday;
   double weight;
   double height;
