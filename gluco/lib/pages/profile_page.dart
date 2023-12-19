@@ -102,6 +102,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         FloatingActionButton(
                           backgroundColor: Colors.grey[200],
                           onPressed: controller.updateProfilePic,
+                          shape: OvalBorder(),
                           child: Icon(
                             Icons.photo_camera_rounded,
                             size: 30.0,
@@ -407,7 +408,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                         foregroundColor: Colors.white,
                                         textStyle: TextStyle(
                                           color: Colors.white,
-                                          // TODO: corrigir cor
+                                          // TODO: corrigir cor, que cor cara?
                                           fontSize: 18.0,
                                           fontWeight: FontWeight.bold,
                                         ),

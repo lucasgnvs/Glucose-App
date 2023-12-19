@@ -9,6 +9,8 @@ import 'package:gluco/models/user.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
+@Deprecated(
+    'Deveria ser substituido por validação através de BLoC, e não setStates')
 class ProfileController {
   User? _user;
 

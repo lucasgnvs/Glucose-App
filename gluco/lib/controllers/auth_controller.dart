@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
+@Deprecated(
+    'Deveria ser substituido por validação através de BLoC, e não setStates')
 class AuthController {
   final TextEditingController _name = TextEditingController();
   TextEditingController get name => _name;

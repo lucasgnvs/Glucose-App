@@ -20,11 +20,14 @@ class API {
   static User? _user;
   User? get currentUser => _user;
 
+  static bool _isDoctor = false;
+  bool get isDoctor => _isDoctor;
+
   String? _token;
   String? _refresh_token;
   String? _client_id;
 
-  final List<Patient> pacientList = [];
+  final List<Patient> patientList = [];
 
   // TODO: Verificar problema de conexão no iOS
   // Detecção de conexão à internet
@@ -108,7 +111,8 @@ class API {
         await _fetchUserInfo();
         // TODO: talvez esse login vai ficar muito demorado
         if (_user!.type == 'doctor') {
-          await _fetchPatients(_client_id!);
+          _isDoctor = true;
+          await _fetchPatients();
         }
         if (await _fetchUserProfile()) {
           // temporario
@@ -203,6 +207,8 @@ class API {
     String client_id = _client_id!;
     _user = null;
     _client_id = null;
+    _isDoctor = false;
+    patientList.clear();
     _token = null;
     _refresh_token = null;
     log.i('--- Logout');
@@ -440,10 +446,10 @@ class API {
     return true;
   }
 
-  Future<List<Patient>> _fetchPatients(String clientId) async {
-    Uri url = Uri.https(_authority, '/doctor/$clientId/binds_patient');
+  Future<List<Patient>> _fetchPatients() async {
+    Uri url = Uri.https(_authority, '/doctor/${_client_id!}/binds_patient');
 
-    List<Patient> patientsList = <Patient>[];
+    List<Patient> pList = <Patient>[];
 
     Response response = await get(
       url,
@@ -456,7 +462,7 @@ class API {
     if (response.statusCode == 200) {
       List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
       for (dynamic patient in list) {
-        patientsList.add(Patient.fromMap(patient));
+        pList.add(Patient.fromMap(patient));
       }
     } else {
       String detail = '';
@@ -465,20 +471,22 @@ class API {
             jsonDecode(utf8.decode(response.bodyBytes));
         detail = responseBody['detail'];
       } catch (_) {}
-      // TODO: log
       _responseMessage = detail;
+      log.w('--- Patients :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
-    // TODO: talvez isto esteja errado, e os nomes ficaram ruins também
-    pacientList.clear();
-    pacientList.addAll(patientsList);
+    pList.sort((f, s) => f.serviceNumber.compareTo(s.serviceNumber));
+    patientList.clear();
+    patientList.addAll(pList);
 
-    return patientsList;
+    return pList;
   }
 
   /// Envia a medição coletada pelo bluetooth para ser processada na nuvem
-  Future<bool> postMeasurements(
-      MeasurementCollected measurement, String clientId) async {
+  Future<bool> postMeasurements(MeasurementCollected measurement,
+      [String? clientId]) async {
+    clientId ??= _client_id;
+
     Uri url = Uri.https(_authority, '/measure/$clientId/create');
 
     Response response = await _client.post(
@@ -506,12 +514,14 @@ class API {
   }
 
   /// Busca tantas medições do banco remoto
-  Future<List<MeasurementCompleted>> fetchMeasurements(
-    String clientId, {
+  Future<List<MeasurementCompleted>> fetchMeasurements({
+    String? clientId,
     int? amount,
     int? offset,
     int? daysBefore,
   }) async {
+    clientId ??= _client_id;
+
     Map<String, dynamic> queryParams = {};
     if (amount != null) {
       queryParams['amount'] = amount.toString();
@@ -522,7 +532,7 @@ class API {
     if (daysBefore != null) {
       queryParams['days_before'] = daysBefore.toString();
     }
-    Uri url = Uri.https(_authority, '/measure/${_client_id!}', queryParams);
+    Uri url = Uri.https(_authority, '/measure/$clientId/get', queryParams);
 
     List<MeasurementCompleted> measurementsList = <MeasurementCompleted>[];
 
@@ -546,8 +556,9 @@ class API {
             jsonDecode(utf8.decode(response.bodyBytes));
         detail = responseBody['detail'];
       } catch (_) {}
-      // TODO: log
       _responseMessage = detail;
+      log.w(
+          '--- Measure Fetch :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
     return measurementsList;

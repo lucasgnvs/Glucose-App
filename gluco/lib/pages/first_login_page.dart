@@ -86,6 +86,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                     FloatingActionButton(
                       backgroundColor: Colors.grey[200],
                       onPressed: controller.updateProfilePic,
+                      shape: OvalBorder(),
                       child: Icon(
                         Icons.photo_camera_rounded,
                         size: 35.0,
@@ -358,6 +359,7 @@ class _FirstLoginPageState extends State<FirstLoginPage> {
                     );
                   },
                 ),
+                // TODO: botar um botão de logout
               ],
             ),
           ),

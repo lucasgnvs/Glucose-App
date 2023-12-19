@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:async_button_builder/async_button_builder.dart';
 import 'package:gluco/db/database_helper.dart';
 import 'package:gluco/models/measurement.dart';
+import 'package:gluco/models/exceptions/home_exceptions.dart';
+import 'package:gluco/models/patient.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/services/bluetooth_helper.dart';
 import 'package:gluco/styles/default_app_bar.dart';
@@ -13,6 +15,7 @@ import 'package:gluco/styles/main_bottom_app_bar.dart';
 import 'package:gluco/styles/custom_colors.dart';
 import 'package:gluco/views/history_view.dart';
 import 'package:gluco/widgets/icon_card.dart';
+import 'package:gluco/widgets/patient_dropdown.dart';
 import 'package:gluco/widgets/side_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:gluco/app_icons.dart';
@@ -30,93 +33,112 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late Stream<bool> btConn;
 
+  late TextEditingController controllerPatient;
+  final List<Patient> patientsList = [];
+
   @override
   void initState() {
     btConn = BluetoothHelper.instance.connected;
+    controllerPatient = TextEditingController();
     WidgetsBinding.instance
         .addPostFrameCallback(_dialogNoConnection(context, widget));
     super.initState();
   }
 
-  // TODO: Continuar tela de seleção de pacientes assim que API fornecer tais informações
-  bool _isPacientSelected = false;
-  String? _dropdownValue;
-
   @override
   Widget build(BuildContext context) {
+    if (patientsList.isEmpty) {
+      patientsList.add(Patient(clientId: '', serviceNumber: context.loc.me));
+      patientsList.addAll(API.instance.patientList);
+    }
     Size heightSize = Size.fromHeight(MediaQuery.of(context).size.height *
         (MediaQuery.of(context).orientation == Orientation.portrait
             ? 0.2
             : 0.4));
-    IconCard glucoseCard = IconCard(
-      icon: Icon(AppIcons.molecula, color: Colors.white, size: 32),
-      label: Text(
-        context.loc.glucose,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 20.0,
-          fontWeight: FontWeight.bold,
-          fontStyle: FontStyle.italic,
-        ),
-      ),
-      data: HistoryView.currentMeasurement.id != -1
-          ? Text(
-              '${HistoryView.currentMeasurement.glucose} mg/dL',
-              style: TextStyle(
-                fontSize: 18.0,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.bold,
-              ),
-            )
-          : Text(context.loc.no_data),
-      color: CustomColors.lightBlue.withOpacity(1.0),
-      size: heightSize,
+    ValueListenableBuilder<bool> glucoseCard = ValueListenableBuilder<bool>(
+      valueListenable: HistoryView.updatedView,
+      builder: (_, value, __) {
+        return IconCard(
+          icon: Icon(AppIcons.molecula, color: Colors.white, size: 32),
+          label: Text(
+            context.loc.glucose,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20.0,
+              fontWeight: FontWeight.bold,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          data: HistoryView.currentMeasurement.id != -1
+              ? Text(
+                  '${HistoryView.currentMeasurement.glucose} mg/dL',
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : Text(context.loc.no_data),
+          color: CustomColors.lightBlue.withOpacity(1.0),
+          size: heightSize,
+        );
+      },
     );
-    IconCard spo2Card = IconCard(
-      icon: Icon(Icons.air, color: Colors.white),
-      label: Text(
-        context.loc.oxygen_saturation,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.bold,
-          fontStyle: FontStyle.italic,
-        ),
-      ),
-      data: HistoryView.currentMeasurement.id != -1
-          ? Text(
-              '${HistoryView.currentMeasurement.spo2}%',
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontWeight: FontWeight.bold,
-              ),
-            )
-          : Text(context.loc.no_data),
-      color: CustomColors.lightGreen.withOpacity(1.0),
-      size: heightSize,
+    ValueListenableBuilder<bool> spo2Card = ValueListenableBuilder<bool>(
+      valueListenable: HistoryView.updatedView,
+      builder: (_, value, __) {
+        return IconCard(
+          icon: Icon(Icons.air, color: Colors.white),
+          label: Text(
+            context.loc.oxygen_saturation,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          data: HistoryView.currentMeasurement.id != -1
+              ? Text(
+                  '${HistoryView.currentMeasurement.spo2}%',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : Text(context.loc.no_data),
+          color: CustomColors.lightGreen.withOpacity(1.0),
+          size: heightSize,
+        );
+      },
     );
-    IconCard rpmCard = IconCard(
-      icon: Icon(Icons.favorite, color: Colors.white),
-      label: Text(
-        context.loc.heart_rate,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 16.0,
-          fontWeight: FontWeight.bold,
-          fontStyle: FontStyle.italic,
-        ),
-      ),
-      data: HistoryView.currentMeasurement.id != -1
-          ? Text(
-              '${HistoryView.currentMeasurement.pr_rpm} bpm',
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontWeight: FontWeight.bold,
-              ),
-            )
-          : Text(context.loc.no_data),
-      color: CustomColors.greenBlue.withOpacity(1.0),
-      size: heightSize,
+    ValueListenableBuilder<bool> rpmCard = ValueListenableBuilder<bool>(
+      valueListenable: HistoryView.updatedView,
+      builder: (_, value, __) {
+        return IconCard(
+          icon: Icon(Icons.favorite, color: Colors.white),
+          label: Text(
+            context.loc.heart_rate,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          data: HistoryView.currentMeasurement.id != -1
+              ? Text(
+                  '${HistoryView.currentMeasurement.pr_rpm} bpm',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : Text(context.loc.no_data),
+          color: CustomColors.greenBlue.withOpacity(1.0),
+          size: heightSize,
+        );
+      },
     );
     return Scaffold(
       backgroundColor: CustomColors.scaffLightBlue,
@@ -125,7 +147,7 @@ class _HomePageState extends State<HomePage> {
         imagename: 'assets/images/logoblue.png',
         width: MediaQuery.of(context).size.width * 0.25,
       ),
-      bottomNavigationBar: mainBottomAppBar(context, MainBottomAppBar.home),
+      bottomNavigationBar: MainBottomAppBar(page: MainBottomAppBarEnum.home),
       drawer: SideBar(),
       body: Container(
         margin: EdgeInsets.all(15.0),
@@ -139,30 +161,36 @@ class _HomePageState extends State<HomePage> {
               alignment: Alignment.center,
               child: Column(
                 children: [
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      text:
-                          '${context.loc.homepage_view_last_measurement}: ${MediaQuery.of(context).orientation == Orientation.portrait ? '\n' : ' '}',
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                        fontSize: 16.0,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: HistoryView.currentMeasurement.id != -1
-                              ? DateFormat('d MMM, E H:mm', 'pt_BR')
-                                  .format(HistoryView.currentMeasurement.date)
-                                  .toUpperCase()
-                              : context.loc.no_data,
+                  ValueListenableBuilder<bool>(
+                    valueListenable: HistoryView.updatedView,
+                    builder: (_, value, __) {
+                      return RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text:
+                              '${context.loc.homepage_view_last_measurement}: ${MediaQuery.of(context).orientation == Orientation.portrait ? '\n' : ' '}',
                           style: TextStyle(
                             color: Colors.grey[700],
                             fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
                           ),
+                          children: [
+                            TextSpan(
+                              text: HistoryView.currentMeasurement.id != -1
+                                  ? DateFormat('d MMM, E H:mm', 'pt_BR')
+                                      .format(
+                                          HistoryView.currentMeasurement.date)
+                                      .toUpperCase()
+                                  : context.loc.no_data,
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -198,6 +226,16 @@ class _HomePageState extends State<HomePage> {
                       Expanded(child: rpmCard)
                     ],
                   ),
+            if (API.instance.isDoctor)
+              PatientDropdown(
+                controller: controllerPatient,
+                entries: patientsList,
+                shadow: true,
+                onSelected: (pat) async {
+                  // TODO: provalmente ficar fazendo requisição assim vai dar errado
+                  // await HistoryView.fetchHistory(pat?.clientId);
+                },
+              ),
             StreamBuilder<bool>(
               stream: btConn,
               initialData: false,
@@ -219,41 +257,32 @@ class _HomePageState extends State<HomePage> {
                     } catch (e) {
                       // TODO: tirar context de async gap
                       await _dialogErrorBluetooth(context);
-                      // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
-                      //  escolher uma exceção certa e não uma string
-                      throw 'erro na home';
+                      throw MeasurementCollectionHomeException();
                     }
                     bool response = false;
-                    response = await _dialogMeasurement(context, measurement);
-                    _isPacientSelected = false;
-                    _dropdownValue = null;
+                    // TODO: tirar context de async gap
+                    response = await _dialogMeasurement(
+                      context,
+                      measurement,
+                      controllerPatient,
+                      patientsList,
+                    );
                     if (!response) {
-                      // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
-                      //  escolher uma exceção certa e não uma string
-                      throw 'erro medicao cancelada';
+                      throw MeasurementCancelledHomeException();
                     }
-                    // TODO: Atualizar visualização para receber última medição quando estiver disponível na API
-                    // MeasurementCompleted measurement = await API.instance.getMeasurement();
-                    // await DatabaseHelper.instance
-                    //     .insertMeasurement(API.instance.currentUser!, measurement);
-                    ///////////////////
-                    /// SIMULAÇÃO
-                    //measurement = await BluetoothHelper.instance.collect_rand();
-                    // MeasurementCollected ms = measurement;
-                    // MeasurementCompleted mc = HistoryView.currentMeasurement;
-                    // mc.id++;
-                    // mc.spo2 = ms.spo2;
-                    // mc.pr_rpm = ms.pr_rpm;
-                    // mc.glucose = ms.apparent_glucose!;
-                    // mc.date = ms.date;
+                    // /////////// TODO: talvez isso esteja errado, consistencia
+                    // HistoryView.currentMeasurement.id++;
+                    // HistoryView.currentMeasurement.spo2 = measurement.spo2;
+                    // HistoryView.currentMeasurement.pr_rpm = measurement.pr_rpm;
+                    // HistoryView.currentMeasurement.glucose =
+                    //     measurement.apparent_glucose ?? -1;
+                    // HistoryView.currentMeasurement.date = measurement.date;
                     // HistoryView.updateMeasurementsMap();
+                    // ///////////
                     // await DatabaseHelper.instance.insertMeasurementCompleted(
-                    //     API.instance.currentUser!, mc);
-                    // setState(() {
-                    //   HistoryView.disposeHistory();
-                    //   HistoryView.fetchHistory();
-                    // });
-                    /////////
+                    //     API.instance.currentUser!,
+                    //     HistoryView.currentMeasurement);
+                    // ///////////
                   },
                   builder: (contextButton, child, callback, _) {
                     Color color = CustomColors.greenBlue.withOpacity(1.0);
@@ -293,7 +322,9 @@ class _HomePageState extends State<HomePage> {
 }
 
 void Function(Duration) _dialogNoConnection(
-    BuildContext context, HomePage widget) {
+  BuildContext context,
+  HomePage widget,
+) {
   return (_) async {
     if (widget.offline && widget.popup) {
       await showDialog(
@@ -302,7 +333,10 @@ void Function(Duration) _dialogNoConnection(
           return AlertDialog(
             title: Text(context.loc.generic_error_no_connection),
             content: Text(context.loc.homepage_view_no_connection),
+            elevation: 4.0,
+            backgroundColor: CustomColors.scaffLightBlue,
             shape: RoundedRectangleBorder(
+              side: BorderSide(width: 1.0),
               borderRadius: BorderRadius.circular(10.0),
             ),
             actions: [
@@ -333,7 +367,10 @@ Future<void> _dialogErrorBluetooth(BuildContext context) async {
             children: [Text('${BluetoothHelper.instance.valuesError}')],
           ),
         ),
+        elevation: 4.0,
+        backgroundColor: CustomColors.scaffLightBlue,
         shape: RoundedRectangleBorder(
+          side: BorderSide(width: 1.0),
           borderRadius: BorderRadius.circular(10.0),
         ),
         actions: [
@@ -350,47 +387,53 @@ Future<void> _dialogErrorBluetooth(BuildContext context) async {
 }
 
 Future<bool> _dialogMeasurement(
-    BuildContext context, MeasurementCollected measurement) async {
+  BuildContext context,
+  MeasurementCollected measurement,
+  TextEditingController controllerPatient,
+  List<Patient> patientsList,
+) async {
   final formKey = GlobalKey<FormState>();
-  bool response = false;
+  bool isSuccess = false;
   await showDialog(
     barrierDismissible: false,
     context: context,
     builder: (contextMeasurement) {
-      TextEditingController controller = TextEditingController();
+      TextEditingController controllerDiabetes = TextEditingController();
       return AlertDialog(
-        title: Text(context.loc.homepage_prompt_glucose_measurement),
+        title: Text(context.loc.homepage_prompt_send_measurement),
         shape: RoundedRectangleBorder(
+          side: BorderSide(width: 1.0),
           borderRadius: BorderRadius.circular(10.0),
         ),
+        elevation: 4.0,
+        backgroundColor: CustomColors.scaffLightBlue,
         content: Form(
           key: formKey,
           autovalidateMode: AutovalidateMode.always,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // TODO: Adicionar seleção de pacientes se usuário médico
-              /*
-              DropdownButtonFormField(
-                value: _dropdownValue,
-                icon: Icon(Icons.keyboard_arrow_down),
-                onChanged: (String? value) {
-                  _isPacientSelected =
-                      value?.isNotEmpty ?? false;
-                  setState(() {
-                    _dropdownValue = value!;
-                  });
-                },
-                items: API.instance.pacientList
-                    .map((String value) {
-                  return DropdownMenuItem(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList()),
-              */
+              if (API.instance.isDoctor)
+                PatientDropdown(
+                  controller: controllerPatient,
+                  entries: patientsList,
+                ).build(context),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 10.0),
+              ),
               TextFormField(
-                controller: controller,
+                controller: controllerDiabetes,
+                decoration: InputDecoration(
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  labelStyle: const TextStyle(color: Colors.black),
+                  labelText: context.loc.homepage_prompt_glucose_measurement,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: UnderlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
                 validator: (value) {
                   String? message;
                   try {
@@ -416,8 +459,12 @@ Future<bool> _dialogMeasurement(
             ),
           ),
           TextButton(
-            style:
-                TextButton.styleFrom(backgroundColor: CustomColors.lightGreen),
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6.0),
+              ),
+              backgroundColor: CustomColors.lightGreen,
+            ),
             child: Text(
               context.loc.send,
               style: TextStyle(
@@ -426,15 +473,28 @@ Future<bool> _dialogMeasurement(
             ),
             onPressed: () async {
               if (!(formKey.currentState?.validate() ?? false)) {
-                // TODO: Precisa lançar exceção para aparecer ícone certo no botão,
-                //  escolher uma exceção certa e não uma string
-                throw 'Form inválido';
+                throw MeasurementFormHomeException();
               }
-              measurement.apparent_glucose = double.parse(controller.text);
-              response = await _dialogConfirmMeasurement(
-                  context, contextMeasurement, measurement);
-              // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
-              if (response) {
+              measurement.apparent_glucose =
+                  double.parse(controllerDiabetes.text);
+
+              //TODO: a seleção do paciente tá sendo feita de uma maneira burra mas ok
+              Patient? patient;
+              try {
+                patient = API.instance.patientList.firstWhere(
+                  (e) => e.serviceNumber == controllerPatient.text,
+                );
+              } catch (_) {}
+
+              isSuccess = await _dialogConfirmMeasurement(
+                context,
+                contextMeasurement,
+                measurement,
+                patient,
+              );
+
+              if (isSuccess) {
+                // TODO: tirar context de async gap
                 Navigator.pop(contextMeasurement);
               }
             },
@@ -443,11 +503,13 @@ Future<bool> _dialogMeasurement(
       );
     },
   );
-  return response;
+  return isSuccess;
 }
 
 Future<void> _dialogConfirmCancel(
-    BuildContext context, BuildContext contextMeasurement) async {
+  BuildContext context,
+  BuildContext contextMeasurement,
+) async {
   await showDialog(
     barrierDismissible: false,
     barrierColor: Colors.transparent,
@@ -456,13 +518,20 @@ Future<void> _dialogConfirmCancel(
       return AlertDialog(
         title: Text(context.loc.generic_dialog_cancel),
         shape: RoundedRectangleBorder(
+          side: BorderSide(width: 1.0),
           borderRadius: BorderRadius.circular(10.0),
         ),
+        elevation: 4.0,
+        backgroundColor: CustomColors.scaffLightBlue,
         actions: [
           TextButton(
-            style: TextButton.styleFrom(backgroundColor: Colors.red[900]),
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6.0),
+              ),
+              backgroundColor: Colors.red.shade900,
+            ),
             onPressed: () {
-              // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
               Navigator.pop(contextCancel);
               Navigator.pop(contextMeasurement);
             },
@@ -472,8 +541,12 @@ Future<void> _dialogConfirmCancel(
             ),
           ),
           TextButton(
-            style:
-                TextButton.styleFrom(backgroundColor: CustomColors.lightGreen),
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6.0),
+              ),
+              backgroundColor: CustomColors.lightGreen,
+            ),
             onPressed: () {
               Navigator.pop(contextCancel);
             },
@@ -490,9 +563,13 @@ Future<void> _dialogConfirmCancel(
   );
 }
 
-Future<bool> _dialogConfirmMeasurement(BuildContext context,
-    BuildContext contextMeasurement, MeasurementCollected measurement) async {
-  bool response = false;
+Future<bool> _dialogConfirmMeasurement(
+  BuildContext context,
+  BuildContext contextMeasurement,
+  MeasurementCollected measurement,
+  Patient? patient,
+) async {
+  bool isSuccess = false;
   await showDialog(
     barrierDismissible: false,
     barrierColor: Colors.transparent,
@@ -500,11 +577,21 @@ Future<bool> _dialogConfirmMeasurement(BuildContext context,
     builder: (contextConfirm) {
       return AlertDialog(
         title: Text(context.loc.homepage_prompt_confirm_data),
-        content: Text(
-            // TODO: Adicionar confirmação de paciente se usuário médico
-            // 'Paciente: $_dropdownValue\n'
-            '${context.loc.glucose} : ${measurement.apparent_glucose}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (API.instance.isDoctor)
+              // TODO: é uma solução tapa buraco esse null coisa
+              Text(
+                  '${context.loc.patient}: ${patient?.serviceNumber ?? context.loc.me}'),
+            Text('${context.loc.glucose}: ${measurement.apparent_glucose}'),
+          ],
+        ),
+        elevation: 4.0,
+        backgroundColor: CustomColors.scaffLightBlue,
         shape: RoundedRectangleBorder(
+          side: BorderSide(width: 1.0),
           borderRadius: BorderRadius.circular(10.0),
         ),
         actions: [
@@ -519,24 +606,32 @@ Future<bool> _dialogConfirmMeasurement(BuildContext context,
           ),
           AsyncButtonBuilder(
             onPressed: () async {
-              // TODO: não existe client_id 'Eu'
-              response = await API.instance.postMeasurements(measurement, 'Eu');
-              // TODO: Inserir campo do paciente no método post
-              // _dropdownValue!);
-              if (!response) {
-                await DatabaseHelper.instance.insertMeasurementCollected(
-                    API.instance.currentUser!, measurement);
-              }
-              // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
+              isSuccess = await API.instance
+                  .postMeasurements(measurement, patient?.clientId);
+              // TODO: tirar context de async gap
               await _dialogSentMeasurement(context, contextMeasurement,
-                  contextConfirm, measurement, response);
-              response = true;
-              Navigator.pop(contextConfirm);
+                  contextConfirm, measurement, isSuccess);
+              if (!isSuccess) {
+                if (!API.instance.isDoctor) {
+                  await DatabaseHelper.instance.insertMeasurementCollected(
+                      API.instance.currentUser!, measurement);
+                }
+                // TODO: tirar context de async gap
+                Navigator.pop(contextConfirm);
+                Navigator.pop(contextMeasurement);
+              } else {
+                // TODO: tirar context de async gap
+                Navigator.pop(contextConfirm);
+              }
             },
             builder: (cont, child, callback, _) {
               return TextButton(
                 style: TextButton.styleFrom(
-                    backgroundColor: CustomColors.lightGreen),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6.0),
+                  ),
+                  backgroundColor: CustomColors.lightGreen,
+                ),
                 onPressed: callback,
                 child: child,
               );
@@ -552,26 +647,31 @@ Future<bool> _dialogConfirmMeasurement(BuildContext context,
       );
     },
   );
-  return response;
+  return isSuccess;
 }
 
 Future<void> _dialogSentMeasurement(
-    BuildContext context,
-    BuildContext contextMeasurement,
-    BuildContext contextConfirm,
-    MeasurementCollected measurement,
-    bool response) async {
+  BuildContext context,
+  BuildContext contextMeasurement,
+  BuildContext contextConfirm,
+  MeasurementCollected measurement,
+  bool isSuccess,
+) async {
   await showDialog(
     barrierDismissible: false,
     barrierColor: Colors.transparent,
     context: contextConfirm,
     builder: (contextSent) {
       return AlertDialog(
-        title: Text(response
-            ? context.loc.homepage_prompt_measurement_sent
-            : context.loc.homepage_error_measurement_not_sent),
+        title: Text(
+          isSuccess
+              ? context.loc.homepage_prompt_measurement_sent
+              : context.loc.homepage_error_measurement_not_sent,
+          style: TextStyle(color: isSuccess ? null : Colors.red.shade900),
+        ),
         content: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: measurement
                 .toMap()
                 .entries
@@ -579,17 +679,18 @@ Future<void> _dialogSentMeasurement(
                 .toList(),
           ),
         ),
+        elevation: 4.0,
+        backgroundColor: CustomColors.scaffLightBlue,
         shape: RoundedRectangleBorder(
+          side: BorderSide(width: 1.0),
           borderRadius: BorderRadius.circular(10.0),
         ),
         actions: [
           TextButton(
             onPressed: (() {
-              // TODO: Consertar async gap e selecionar locais para pop (não está popando os certos)
               Navigator.pop(contextSent);
             }),
-            // TODO: Retirar literal
-            child: Text(response ? 'Ok!' : context.loc.return_p),
+            child: Text(isSuccess ? context.loc.ok : context.loc.return_p),
           )
         ],
       );
@@ -606,15 +707,27 @@ Future<void> Function()? _dialogNoDevice(BuildContext context) {
         return AlertDialog(
           title: Text(context.loc.homepage_error_device_not_connected),
           content: Text(context.loc.homepage_prompt_connect_device),
+          elevation: 4.0,
+          backgroundColor: CustomColors.scaffLightBlue,
           shape: RoundedRectangleBorder(
+            side: BorderSide(width: 1.0),
             borderRadius: BorderRadius.circular(10.0),
           ),
           actions: [
             TextButton(
-              child: Text(context.loc.homepage_prompt_go_to_devicepage),
+              style: TextButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6.0),
+                ),
+                backgroundColor: CustomColors.lightGreen,
+              ),
               onPressed: () async {
                 await Navigator.popAndPushNamed(context, '/devices');
               },
+              child: Text(
+                context.loc.homepage_prompt_go_to_devicepage,
+                style: TextStyle(color: CustomColors.white),
+              ),
             )
           ],
         );

@@ -1,15 +1,15 @@
 class Patient {
-  String volunteerId;
+  String serviceNumber;
   String clientId;
 
   Patient({
-    required this.volunteerId,
+    required this.serviceNumber,
     required this.clientId,
   });
 
   factory Patient.fromMap(Map<String, dynamic> json) {
     Patient patient = Patient(
-      volunteerId: json['volunteer_id'],
+      serviceNumber: json['service_number'],
       clientId: json['client_id'],
     );
     return patient;
@@ -17,7 +17,7 @@ class Patient {
 
   Map<String, dynamic> toMap() {
     Map<String, dynamic> data = {
-      'volunteer_id': volunteerId,
+      'service_number': serviceNumber,
       'client_id': clientId,
     };
     return data;
