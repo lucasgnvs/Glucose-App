@@ -1,14 +1,17 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 import 'package:gluco/styles/custom_colors.dart';
 import 'package:gluco/extensions/buildcontext/loc.dart';
 
-enum MainBottomAppBar { home, history }
+enum MainBottomAppBarEnum { home, history }
 
-BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
-    BottomAppBar(
-      color: CustomColors.scaffWhite,
+class MainBottomAppBar extends StatelessWidget {
+  const MainBottomAppBar({Key? key, required this.page}) : super(key: key);
+
+  final MainBottomAppBarEnum page;
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomAppBar(
       elevation: 0.0,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -17,9 +20,9 @@ BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
             child: Container(
               decoration: BoxDecoration(
                 border: Border(
-                  top: page == MainBottomAppBar.home
+                  top: page == MainBottomAppBarEnum.home
                       ? BorderSide(
-                          width: 5.0,
+                          width: 4.0,
                           color: CustomColors.lightBlue.withOpacity(1.0))
                       : BorderSide.none,
                 ),
@@ -30,10 +33,10 @@ BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
                   child: Text(
                     context.loc.measure,
                     style: TextStyle(
-                      color: page == MainBottomAppBar.home
+                      color: page == MainBottomAppBarEnum.home
                           ? CustomColors.lightBlue.withOpacity(1.0)
                           : Colors.grey,
-                      fontWeight: page == MainBottomAppBar.home
+                      fontWeight: page == MainBottomAppBarEnum.home
                           ? FontWeight.bold
                           : FontWeight.normal,
                       fontSize: 18,
@@ -41,7 +44,7 @@ BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
                   ),
                 ),
                 onPressed: () async {
-                  if (page != MainBottomAppBar.home) {
+                  if (page != MainBottomAppBarEnum.home) {
                     Navigator.popUntil(context, ModalRoute.withName('/home'));
                   }
                 },
@@ -52,9 +55,9 @@ BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
             child: Container(
               decoration: BoxDecoration(
                 border: Border(
-                  top: page == MainBottomAppBar.history
+                  top: page == MainBottomAppBarEnum.history
                       ? BorderSide(
-                          width: 5.0,
+                          width: 4.0,
                           color: CustomColors.lightBlue.withOpacity(1.0))
                       : BorderSide.none,
                 ),
@@ -65,10 +68,10 @@ BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
                   child: Text(
                     context.loc.historic,
                     style: TextStyle(
-                      color: page == MainBottomAppBar.history
+                      color: page == MainBottomAppBarEnum.history
                           ? CustomColors.lightBlue.withOpacity(1.0)
                           : Colors.grey,
-                      fontWeight: page == MainBottomAppBar.history
+                      fontWeight: page == MainBottomAppBarEnum.history
                           ? FontWeight.bold
                           : FontWeight.normal,
                       fontSize: 18,
@@ -76,7 +79,7 @@ BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
                   ),
                 ),
                 onPressed: () async {
-                  if (page != MainBottomAppBar.history) {
+                  if (page != MainBottomAppBarEnum.history) {
                     await Navigator.pushNamed(context, '/history');
                   }
                 },
@@ -86,3 +89,5 @@ BottomAppBar mainBottomAppBar(BuildContext context, MainBottomAppBar page) =>
         ],
       ),
     );
+  }
+}

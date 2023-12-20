@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_final_fields, non_constant_identifier_names
 
+import 'package:flutter/material.dart';
 import 'package:gluco/db/database_helper.dart';
 import 'package:gluco/models/measurement.dart';
 import 'package:gluco/services/api.dart';
@@ -36,17 +37,24 @@ abstract class HistoryView {
   static final Map<String, Map<String, List<MeasurementView>>>
       measurementsViewMap = <String, Map<String, List<MeasurementView>>>{};
 
+  // TODO: a ideia é incrementar o currOffset para fazer um scroll infinito das medições
+  static const int numDays = 7;
+  static int currOffset = 0;
+
+  static final ValueNotifier<bool> updatedView = ValueNotifier<bool>(false);
+
   /// Medição mais recente, utilizada na visualização da home
   static final MeasurementCompleted currentMeasurement = MeasurementCompleted(
     id: -1,
-    spo2: 0,
-    pr_rpm: 0,
-    glucose: 0,
-    date: DateTime.now(), // talvez não faça sentido
+    spo2: -1,
+    pr_rpm: -1,
+    glucose: -1,
+    date: DateTime(1),
   );
 
   /// Insere a medição atual no mapa
   static bool updateMeasurementsMap() {
+    updatedView.value = !updatedView.value;
     return _insertMeasurementView(currentMeasurement);
   }
 
@@ -86,9 +94,23 @@ abstract class HistoryView {
 
   /// Busca as medições recentes do usuário no banco e mapeia em memória,
   /// utilizada no login
-  static Future<bool> fetchHistory() async {
-    List measurementsList = await DatabaseHelper.instance
-        .queryMeasurementCompleted(API.instance.currentUser!);
+  static Future<bool> fetchHistory([String? clientId]) async {
+    late List<MeasurementCompleted> measurementsList;
+
+    disposeHistory();
+    updatedView.value = !updatedView.value;
+
+    if (clientId == null) {
+      measurementsList = await DatabaseHelper.instance
+          .queryMeasurementCompleted(API.instance.currentUser!);
+    } else {
+      measurementsList = [];
+      // TODO: consertar a atualização da visualização
+      // measurementsList = await API.instance.fetchMeasurements(
+      //     clientId: clientId.isEmpty ? null : clientId,
+      //     daysBefore: numDays,
+      //     offset: currOffset * numDays);
+    }
 
     if (measurementsList.isNotEmpty) {
       for (MeasurementCompleted measurement in measurementsList.reversed) {
@@ -99,6 +121,7 @@ abstract class HistoryView {
       currentMeasurement.spo2 = measurementsList.first.spo2;
       currentMeasurement.pr_rpm = measurementsList.first.pr_rpm;
       currentMeasurement.date = measurementsList.first.date;
+      updatedView.value = !updatedView.value;
       return true;
     }
 
@@ -109,9 +132,9 @@ abstract class HistoryView {
   static void disposeHistory() {
     measurementsViewMap.clear();
     currentMeasurement.id = -1;
-    currentMeasurement.glucose = 0;
-    currentMeasurement.spo2 = 0;
-    currentMeasurement.pr_rpm = 0;
-    currentMeasurement.date = DateTime.now();
+    currentMeasurement.glucose = -1;
+    currentMeasurement.spo2 = -1;
+    currentMeasurement.pr_rpm = -1;
+    currentMeasurement.date = DateTime(1);
   }
 }

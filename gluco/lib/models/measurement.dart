@@ -14,8 +14,8 @@ abstract class Measurement {
   Measurement.fromMap(Map<String, dynamic> json) {
     // TODO: id não é passado nas requisições
     id = json['idmeasurements'] ?? -1;
-    spo2 = int.parse('${json['spo2']}');
-    pr_rpm = int.parse('${json['pr_rpm']}');
+    spo2 = double.parse('${json['spo2']}').toInt();
+    pr_rpm = double.parse('${json['pr_rpm']}').toInt();
     // TODO: data não é passada nas requisições
     date = DateTime.tryParse(json['date'] ?? '') ?? DateTime.now();
   }

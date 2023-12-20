@@ -2,8 +2,9 @@
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:gluco/styles/custom_colors.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:gluco/db/db_test.dart';
+// import 'package:gluco/db/db_test.dart';
 import 'package:gluco/services/bluetooth_helper.dart';
 import 'package:gluco/services/custom_log.dart';
 import 'package:gluco/pages/device_page.dart';
@@ -16,7 +17,7 @@ import 'package:gluco/pages/signup_page.dart';
 import 'package:gluco/pages/splash_screen.dart';
 import 'package:gluco/services/api.dart';
 import 'package:gluco/services/btle_test.dart';
-import 'package:gluco/styles/custom_colors.dart';
+// import 'package:gluco/styles/custom_colors.dart';
 import 'package:gluco/views/history_view.dart';
 
 String _defaultHome = '/login';
@@ -65,8 +66,12 @@ class MainState extends State<Main> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: CustomColors.lightGreen),
+        useMaterial3: true,
         scaffoldBackgroundColor: Colors.transparent,
         primarySwatch: Colors.green,
+        // popupMenuTheme:
+        //     ThemeData.light().popupMenuTheme.copyWith(color: CustomColors.scaffWhite),
         // backgroundColor: Colors.white,  // color Schema
         // // accentColor: Colors.grey[600],
         // errorColor: Colors.red[900],
@@ -79,17 +84,7 @@ class MainState extends State<Main> {
                 fontWeight: FontWeight.bold,
               ),
               labelLarge: TextStyle(color: Colors.white),
-            ), /* deprec
-        appBarTheme: AppBarTheme(
-          textTheme: ThemeData.light().textTheme.copyWith(
-                titleLarge: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'OpenSans',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-        ),*/
+            ),
       ),
       routes: {
         '/': (context) => SplashScreen(route: _defaultHome),

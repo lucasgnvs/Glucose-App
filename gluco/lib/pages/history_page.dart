@@ -45,7 +45,7 @@ class _HistoryPageState extends State<HistoryPage> {
         appBar:
             defaultAppBar(title: context.loc.historypage_measurement_history),
         bottomNavigationBar:
-            mainBottomAppBar(context, MainBottomAppBar.history),
+            MainBottomAppBar(page: MainBottomAppBarEnum.history),
         body: Container(
           padding: EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
           decoration: BoxDecoration(

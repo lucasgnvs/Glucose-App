@@ -81,6 +81,44 @@ class BluetoothHelper {
     log.w('--- YieldConnection :: Terminated : $error');
   }
 
+  ///////////////////////////TESTE///////////////////////////
+  /*
+  static bool con = false;
+
+  List<Device> get devices {
+    return [Device(id: '16749152', name: 'Glucowatch', connected: con)];
+  }
+
+  Future<void> scan() async {
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 3));
+  }
+
+  Future<bool> connect(Device dvc) async {
+    await Future.delayed(const Duration(seconds: 1));
+    con = true;
+    _yieldConnection();
+    return true;
+  }
+
+  Future<bool> disconnect() async {
+    con = false;
+    return true;
+  }
+
+  void _yieldConnection() async {
+    Timer.periodic(
+      const Duration(milliseconds: 100),
+      (t) {
+        _connected.add(true);
+        if (!con) {
+          t.cancel();
+          _connected.add(false);
+        }
+      },
+    );
+  }*/
+  //////////////////////////////////////////////////////
+
   /// Lista de dispositivos encontrados pelo escaneamento
   final List<BluetoothDevice> _devices = [];
 

@@ -8,6 +8,7 @@ import 'package:gluco/db/database_helper.dart';
 import 'package:gluco/models/measurement.dart';
 import 'package:gluco/models/requests.dart';
 import 'package:gluco/models/user.dart';
+import 'package:gluco/models/patient.dart';
 import 'package:gluco/services/custom_log.dart';
 
 /// API para comunicação com o servidor
@@ -19,15 +20,14 @@ class API {
   static User? _user;
   User? get currentUser => _user;
 
+  static bool _isDoctor = false;
+  bool get isDoctor => _isDoctor;
+
   String? _token;
   String? _refresh_token;
   String? _client_id;
 
-  // TODO: Algum endpoint deve trazer essa informação
-  bool _isDoctor = false;
-  bool get isDoctor => _isDoctor;
-  List<String> get pacientList => ['Eu', 'José', 'Alisson', 'Larissa'];
-  //
+  final List<Patient> patientList = [];
 
   // TODO: Verificar problema de conexão no iOS
   // Detecção de conexão à internet
@@ -109,6 +109,11 @@ class API {
           auto ? await _fetchDBCredentials() : await _login(email, password);
       if (logged) {
         await _fetchUserInfo();
+        // TODO: talvez esse login vai ficar muito demorado
+        if (_user!.type == 'doctor') {
+          _isDoctor = true;
+          await _fetchPatients();
+        }
         if (await _fetchUserProfile()) {
           // temporario
           await _updateProfilePic();
@@ -202,6 +207,8 @@ class API {
     String client_id = _client_id!;
     _user = null;
     _client_id = null;
+    _isDoctor = false;
+    patientList.clear();
     _token = null;
     _refresh_token = null;
     log.i('--- Logout');
@@ -361,6 +368,7 @@ class API {
     if (response.statusCode == 200) {
       _user!.name = responseBody['name'];
       _user!.email = responseBody['email'];
+      _user!.type = responseBody['type'];
       _responseMessage = APIResponseMessages.success;
       log.i('--- Fetch user info :: $_responseMessage');
       return true;
@@ -438,19 +446,48 @@ class API {
     return true;
   }
 
-  /// Envia a medição coletada pelo bluetooth para ser processada na nuvem
-  Future<bool> postMeasurements(
-      MeasurementCollected measurement,
-      // [User? user]) async {
-      String user) async {
-    await _refreshToken();
-    return user == 'Eu'
-        ? _postMeasurements(measurement)
-        : _postPacientMeasurements(measurement, user);
+  Future<List<Patient>> _fetchPatients() async {
+    Uri url = Uri.https(_authority, '/doctor/${_client_id!}/binds_patient');
+
+    List<Patient> pList = <Patient>[];
+
+    Response response = await get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $_token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
+      for (dynamic patient in list) {
+        pList.add(Patient.fromMap(patient));
+      }
+    } else {
+      String detail = '';
+      try {
+        Map<String, dynamic> responseBody =
+            jsonDecode(utf8.decode(response.bodyBytes));
+        detail = responseBody['detail'];
+      } catch (_) {}
+      _responseMessage = detail;
+      log.w('--- Patients :: ${response.reasonPhrase} :: $_responseMessage');
+    }
+
+    pList.sort((f, s) => f.serviceNumber.compareTo(s.serviceNumber));
+    patientList.clear();
+    patientList.addAll(pList);
+
+    return pList;
   }
 
-  Future<bool> _postMeasurements(MeasurementCollected measurement) async {
-    Uri url = Uri.https(_authority, '/measure/${_client_id!}/create');
+  /// Envia a medição coletada pelo bluetooth para ser processada na nuvem
+  Future<bool> postMeasurements(MeasurementCollected measurement,
+      [String? clientId]) async {
+    clientId ??= _client_id;
+
+    Uri url = Uri.https(_authority, '/measure/$clientId/create');
 
     Response response = await _client.post(
       url,
@@ -476,21 +513,26 @@ class API {
     return false;
   }
 
-  @Deprecated('Não faz sentido separar o método em dois')
-  Future<bool> _postPacientMeasurements(
-      // MeasurementCollected measurement, User user) async {
-      MeasurementCollected measurement,
-      String user) async {
-    print('oi, enviei do paciente');
-    return false;
-  }
-
   /// Busca tantas medições do banco remoto
-  // TODO: Implementar
-  @Deprecated('Não tem endpoint pra isso ainda, tem sim')
-  Future<List<MeasurementCompleted>> fetchMeasurements(
-      {int amount = 30, int offset = 0}) async {
-    Uri url = Uri.https(_authority, '/measure/${_client_id!}/$amount/$offset');
+  Future<List<MeasurementCompleted>> fetchMeasurements({
+    String? clientId,
+    int? amount,
+    int? offset,
+    int? daysBefore,
+  }) async {
+    clientId ??= _client_id;
+
+    Map<String, dynamic> queryParams = {};
+    if (amount != null) {
+      queryParams['amount'] = amount.toString();
+    }
+    if (offset != null) {
+      queryParams['offset'] = offset.toString();
+    }
+    if (daysBefore != null) {
+      queryParams['days_before'] = daysBefore.toString();
+    }
+    Uri url = Uri.https(_authority, '/measure/$clientId/get', queryParams);
 
     List<MeasurementCompleted> measurementsList = <MeasurementCompleted>[];
 
@@ -502,19 +544,21 @@ class API {
       },
     );
 
-    Map<String, dynamic> responseBody =
-        jsonDecode(utf8.decode(response.bodyBytes));
-
     if (response.statusCode == 200) {
-      List<Map<String, dynamic>> list = responseBody['measurements'];
-      for (Map<String, dynamic> measurement in list) {
-        measurementsList.add(MeasurementCompleted.fromMap(measurement));
+      List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
+      for (dynamic measure in list) {
+        measurementsList.add(MeasurementCompleted.fromMap(measure));
       }
     } else {
-      //
-      print(response.reasonPhrase);
-      //
-      _responseMessage = responseBody['detail'];
+      String detail = '';
+      try {
+        Map<String, dynamic> responseBody =
+            jsonDecode(utf8.decode(response.bodyBytes));
+        detail = responseBody['detail'];
+      } catch (_) {}
+      _responseMessage = detail;
+      log.w(
+          '--- Measure Fetch :: ${response.reasonPhrase} :: $_responseMessage');
     }
 
     return measurementsList;

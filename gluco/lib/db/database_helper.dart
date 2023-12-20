@@ -23,6 +23,8 @@ class DatabaseHelper {
       path,
       version: 1,
       onCreate: _onCreate,
+      // TODO: alterações no banco devem usar onUpdate para não crashar
+      // onUpdate: ,
     );
   }
 

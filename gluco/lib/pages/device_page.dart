@@ -319,7 +319,8 @@ class _DevicePageState extends State<DevicePage> {
                   return FloatingActionButton(
                     backgroundColor: color,
                     onPressed: onPressed,
-                    child: Icon(Icons.refresh),
+                    shape: OvalBorder(),
+                    child: Icon(Icons.refresh, color: Colors.white),
                   );
                 },
               ),

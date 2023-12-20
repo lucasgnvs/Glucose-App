@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 
 AppBar defaultAppBar({title, trailing, bool centertitle = false}) => AppBar(
@@ -11,7 +9,7 @@ AppBar defaultAppBar({title, trailing, bool centertitle = false}) => AppBar(
       title: Text(
         title,
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'OpenSans',
           fontSize: 18,
           fontWeight: FontWeight.bold,
