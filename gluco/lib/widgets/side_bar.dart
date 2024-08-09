@@ -43,7 +43,7 @@ class _SideBarState extends State<SideBar> {
             leading: Icon(Icons.person),
             title: Text(
               context.loc.my_profile,
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             onTap: () async {
               await Navigator.popAndPushNamed(context, '/profile');
@@ -53,29 +53,29 @@ class _SideBarState extends State<SideBar> {
             leading: Icon(Icons.watch_outlined),
             title: Text(
               context.loc.devices,
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             onTap: () async {
               await Navigator.popAndPushNamed(context, '/devices');
             },
           ),
-          /*
-          ListTile(
-            leading: Icon(Icons.developer_mode),
-            title: Text(
-              'Dev',
-              style: Theme.of(context).textTheme.headline6,
-            ),
-            onTap: () async {
-              await Navigator.popAndPushNamed(context, '/teste');
-            },
-          ),
-          */
+          // TEST PAGE
+          // ListTile(
+          //   leading: Icon(Icons.developer_mode),
+          //   title: Text(
+          //     'Dev',
+          //     style: Theme.of(context).textTheme.titleLarge,
+          //   ),
+          //   onTap: () async {
+          //     await Navigator.popAndPushNamed(context, '/dev_page');
+          //   },
+          // ),
+          //
           ListTile(
             leading: Icon(Icons.info_outline),
             title: Text(
               context.loc.about_us,
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             trailing: Icon(Icons.open_in_new),
             onTap: () {
@@ -89,7 +89,7 @@ class _SideBarState extends State<SideBar> {
               leading: Icon(Icons.logout),
               title: Text(
                 context.loc.log_out,
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               onTap: () async {
                 HistoryView.disposeHistory();

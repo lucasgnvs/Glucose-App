@@ -16,17 +16,20 @@ class DevicePage extends StatefulWidget {
 }
 
 class _DevicePageState extends State<DevicePage> {
-  void initScan() async {
-    await BluetoothHelper.instance.scan();
-    devices.clear();
-    devices.addAll(BluetoothHelper.instance.devices);
-  }
-
   final List<Device> devices = [];
 
   late Stream<bool> btState;
   late Stream<bool> btScan;
   late Stream<bool> btConn;
+
+  void initScan() async {
+    await BluetoothHelper.instance.scan();
+  }
+
+  void updateScanned() {
+    devices.clear();
+    devices.addAll(BluetoothHelper.instance.devices);
+  }
 
   StreamController<bool> connecting = StreamController<bool>.broadcast();
   void connectDevice(bool cnt, int i) async {
@@ -46,6 +49,11 @@ class _DevicePageState extends State<DevicePage> {
     btState = BluetoothHelper.instance.state;
     btScan = BluetoothHelper.instance.scanning;
     btConn = BluetoothHelper.instance.connected;
+    btScan.listen(
+      (value) {
+        updateScanned();
+      },
+    );
     super.initState();
   }
 
@@ -77,21 +85,24 @@ class _DevicePageState extends State<DevicePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             StreamBuilder<bool>(
-                stream: btScan,
-                initialData: false,
-                builder: (contextStreamScan, snapshot) {
-                  return Visibility(
-                    visible: !snapshot.data! && devices.isNotEmpty,
-                    child: Padding(
-                      padding:
-                          EdgeInsets.only(left: 20.0, top: 5.0, bottom: 10.0),
-                      child: Text(
-                        context.loc.devicepage_prompt_available_devices,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+              stream: btScan,
+              initialData: false,
+              builder: (contextStreamScan, snapshot) {
+                return Visibility(
+                  // TODO: não é atualizado se desligar o bluetooth e a lista de devices
+                  //  não estiver vazia, visto que atualiza pela stream de scan
+                  visible: !snapshot.data! && devices.isNotEmpty,
+                  child: Padding(
+                    padding:
+                        EdgeInsets.only(left: 20.0, top: 5.0, bottom: 10.0),
+                    child: Text(
+                      context.loc.devicepage_prompt_available_devices,
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  );
-                }),
+                  ),
+                );
+              },
+            ),
             Expanded(
               child: Container(
                 padding: EdgeInsets.only(top: 10.0),
@@ -152,8 +163,7 @@ class _DevicePageState extends State<DevicePage> {
                                         itemCount: devices.length,
                                         itemBuilder: (contextItem, i) {
                                           return ListTile(
-                                            title: Text(
-                                                '${devices[i].name} ${devices[i].id}',
+                                            title: Text(devices[i].name,
                                                 style: TextStyle(
                                                     color:
                                                         devices[i].connected &&
@@ -189,6 +199,7 @@ class _DevicePageState extends State<DevicePage> {
                                                             MainAxisAlignment
                                                                 .spaceBetween,
                                                         children: [
+                                                          // TODO: verificar por que permanece verde mesmo após desconectar por sinal perdido
                                                           StreamBuilder<bool>(
                                                             stream: btConn,
                                                             initialData: true,
@@ -229,6 +240,7 @@ class _DevicePageState extends State<DevicePage> {
                                                               );
                                                             },
                                                           ),
+
                                                           StreamBuilder<bool>(
                                                             stream: connecting
                                                                 .stream,

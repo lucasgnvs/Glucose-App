@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:gluco/db/database_helper.dart';
 
 // classe com campo de texto para execucao sql no banco local, uso pra debug
-class DBTest extends StatefulWidget {
-  DBTest();
+class DevDB extends StatefulWidget {
+  DevDB();
 
   @override
-  State<DBTest> createState() => _DBTestState();
+  State<DevDB> createState() => _DevDBState();
 }
 
-class _DBTestState extends State<DBTest> {
+class _DevDBState extends State<DevDB> {
   TextEditingController controller = TextEditingController();
   List<Map<String, Object?>> query = [];
   StreamController stream = StreamController();

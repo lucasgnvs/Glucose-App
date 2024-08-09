@@ -101,6 +101,8 @@ class MeasurementCollected extends Measurement {
     _data['glucose'] = apparent_glucose;
     _data['temperature'] = temperature;
     _data['humidity'] = humidity;
+    // TODO: super foi trocado de posição por causa da visualização, mas whatever
+    _data.addAll(super.toMap());
     for (int i = 1; i <= _lSize; i++) {
       _data['maxled$i'] = maxled[i - 1];
       _data['minled$i'] = minled[i - 1];
@@ -111,7 +113,6 @@ class MeasurementCollected extends Measurement {
       _data['m${i}_2p'] = m_2p[i - 1];
       _data['f${i}_2p'] = f_2p[i - 1];
     }
-    _data.addAll(super.toMap());
     return _data;
   }
 }
