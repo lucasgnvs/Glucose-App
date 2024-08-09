@@ -29,12 +29,12 @@ class API {
 
   final List<Patient> patientList = [];
 
-  // TODO: Verificar problema de conexão no iOS
+  // TODO: Verificar problema de conexão no iOS (talvez era o .vpn que não tem suporte)
   // Detecção de conexão à internet
   final Connectivity _connectivity = Connectivity();
-  Stream<ConnectivityResult> get connection =>
+  Stream<List<ConnectivityResult>> get connection =>
       _connection().asBroadcastStream();
-  Stream<ConnectivityResult> _connection() async* {
+  Stream<List<ConnectivityResult>> _connection() async* {
     var result = await _connectivity.checkConnectivity();
     yield result;
     await for (final value in _connectivity.onConnectivityChanged) {
@@ -43,13 +43,9 @@ class API {
   }
 
   Future<bool> hasConnection() async {
-    ConnectivityResult result = await connection.first;
-    return [
-      ConnectivityResult.wifi,
-      ConnectivityResult.mobile,
-      ConnectivityResult.ethernet,
-      ConnectivityResult.vpn
-    ].contains(result);
+    List<ConnectivityResult> result = await connection.first;
+    return result.contains(ConnectivityResult.wifi) ||
+        result.contains(ConnectivityResult.mobile);
   }
 
   /// Recupera mensagens de erro/confirmação recebida pelas requisições
@@ -66,6 +62,7 @@ class API {
   /// Requisição para solicitação de novo token quando este expira,
   /// utilizando o refresh token, quando ambos expiram é necessário logar novamente
   Future<bool> _refreshToken() async {
+    // TODO: _refreshToken deve ser chamada antes de cada requisição que usa o _token?
     Uri url = Uri.https(_authority, '/refresh_token');
 
     Response response = await _client.get(
@@ -91,7 +88,7 @@ class API {
       log.w(
           '--- Refresh token :: ${response.reasonPhrase} :: $_responseMessage');
     }
-    // TODO: Lançar exceção para logout?
+    // TODO: Lançar exceção para logout? Usar stream para estado do login?
     return false;
   }
 

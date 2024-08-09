@@ -4,7 +4,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:gluco/styles/custom_colors.dart';
 import 'package:intl/date_symbol_data_local.dart';
-// import 'package:gluco/db/db_test.dart';
+// import 'package:gluco/db/dev_db.dart';
 import 'package:gluco/services/bluetooth_helper.dart';
 import 'package:gluco/services/custom_log.dart';
 import 'package:gluco/pages/device_page.dart';
@@ -16,7 +16,7 @@ import 'package:gluco/pages/profile_page.dart';
 import 'package:gluco/pages/signup_page.dart';
 import 'package:gluco/pages/splash_screen.dart';
 import 'package:gluco/services/api.dart';
-import 'package:gluco/services/btle_test.dart';
+import 'package:gluco/services/dev_btle.dart';
 // import 'package:gluco/styles/custom_colors.dart';
 import 'package:gluco/views/history_view.dart';
 
@@ -95,8 +95,8 @@ class MainState extends State<Main> {
         '/devices': (context) => DevicePage(),
         '/history': (context) => HistoryPage(),
         '/profile': (context) => ProfilePage(),
-        '/teste': (context) => FlutterBlueApp(),
-        // '/teste': (context) => DBTest(),
+        '/dev_page': (context) => DevBTLE(),
+        // '/dev_page': (context) => DevDB(),
       },
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

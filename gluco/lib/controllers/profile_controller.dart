@@ -139,7 +139,8 @@ class ProfileController {
       maxWidth: 360,
       maxHeight: 360,
       aspectRatio: const CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
-      cropStyle: CropStyle.circle,
+      // TODO: cropStyle foi deprecated, buscar solução para imagem circular
+      // cropStyle: CropStyle.circle,
     );
     if (croppedImage == null) {
       return;

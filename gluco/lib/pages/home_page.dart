@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:async_button_builder/async_button_builder.dart';
 import 'package:gluco/db/database_helper.dart';
+import 'package:gluco/models/exceptions/bluetooth_exceptions.dart';
 import 'package:gluco/models/measurement.dart';
 import 'package:gluco/models/exceptions/home_exceptions.dart';
 import 'package:gluco/models/patient.dart';
@@ -146,6 +147,33 @@ class _HomePageState extends State<HomePage> {
         // TODO: Trocar literal para generate
         imagename: 'assets/images/logoblue.png',
         width: MediaQuery.of(context).size.width * 0.25,
+        trailing: [
+          StreamBuilder<bool>(
+            stream: btConn,
+            initialData: false,
+            builder: (context, snapshot) {
+              IconData batIcon = Icons.battery_unknown;
+              if (BluetoothHelper.instance.battery > 0.8) {
+                batIcon = Icons.battery_full;
+              } else if (BluetoothHelper.instance.battery > 0.5) {
+                batIcon = Icons.battery_4_bar;
+              } else if (BluetoothHelper.instance.battery > 0.3) {
+                batIcon = Icons.battery_2_bar;
+              } else if (BluetoothHelper.instance.battery > 0.0) {
+                batIcon = Icons.battery_1_bar;
+              }
+              return Padding(
+                padding: EdgeInsets.only(right: 10),
+                // TODO: Adicionar icone bluetooth desconectado e conectando,
+                //  (nota: tá funcionando na troca do valor na medição, perfeito mas não era o esperado)
+                //  (nota 2: troca junto com selecao do campo de texto da glicose, deve dar setstate)
+                child: Icon(
+                  snapshot.data ?? false ? batIcon : Icons.watch_off_sharp,
+                ),
+              );
+            },
+          )
+        ],
       ),
       bottomNavigationBar: MainBottomAppBar(page: MainBottomAppBarEnum.home),
       drawer: SideBar(),
@@ -255,8 +283,27 @@ class _HomePageState extends State<HomePage> {
                     try {
                       measurement = await BluetoothHelper.instance.collect();
                     } catch (e) {
+                      String exceptionStr = context.loc.unknown_error;
+                      switch (e.runtimeType) {
+                        case WritingTimeoutBluetoothException:
+                          exceptionStr =
+                              context.loc.bluetooth_exception_writing;
+                          break;
+                        case ReadingTimeoutBluetoothException:
+                          exceptionStr =
+                              context.loc.bluetooth_exception_reading;
+                          break;
+                        case ConvertingErrorBluetoothException:
+                          exceptionStr =
+                              context.loc.bluetooth_exception_converting;
+                          break;
+                        case ComposingErrorBluetoothException:
+                          exceptionStr =
+                              context.loc.bluetooth_exception_composing;
+                          break;
+                      }
                       // TODO: tirar context de async gap
-                      await _dialogErrorBluetooth(context);
+                      await _dialogErrorBluetooth(context, exceptionStr);
                       throw MeasurementCollectionHomeException();
                     }
                     bool response = false;
@@ -355,7 +402,8 @@ void Function(Duration) _dialogNoConnection(
   };
 }
 
-Future<void> _dialogErrorBluetooth(BuildContext context) async {
+Future<void> _dialogErrorBluetooth(
+    BuildContext context, String exception) async {
   await showDialog(
     barrierDismissible: false,
     context: context,
@@ -364,7 +412,8 @@ Future<void> _dialogErrorBluetooth(BuildContext context) async {
         title: Text(context.loc.homepage_error_bluetooth),
         content: SingleChildScrollView(
           child: Column(
-            children: [Text('${BluetoothHelper.instance.valuesError}')],
+            children: [Text(exception)],
+            // children: [Text(exception, textAlign: TextAlign.center)],
           ),
         ),
         elevation: 4.0,
@@ -675,7 +724,30 @@ Future<void> _dialogSentMeasurement(
             children: measurement
                 .toMap()
                 .entries
-                .map((e) => Text('${e.key}: ${e.value}'))
+                .where((e) => e.key.contains(
+                    RegExp(r'(_4p)|(maxled)|(glucose)|(spo2)|(pr_rpm)|(date)')))
+                .map(
+                  (e) => Container(
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.grey,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(e.key, style: TextStyle(fontSize: 16)),
+                        Text(e.value.toString())
+                      ],
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ),
