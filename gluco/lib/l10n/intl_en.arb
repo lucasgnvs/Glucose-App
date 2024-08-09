@@ -77,10 +77,17 @@
     "homepage_prompt_connect_device": "Choose a device to connect in the devices page...",
     "homepage_prompt_go_to_devicepage": "Go to the devices page",
     
+    "unknown_error" : "An error occurred.",
+    
+    "bluetooth_exception_writing" : "An error occurred while requesting a new measurement.",
+    "bluetooth_exception_reading" : "An error occurred while receiving data from the device.",
+    "bluetooth_exception_converting" : "An error occurred while processing the device data.",
+    "bluetooth_exception_composing" : "An error occurred while composing the measurement.",
+
     "historypage_measurement_history": "Measurement History",
     "historypage_view_measurements": "There are no recent measurements",
 
-    "devicepage_prompt_watch_connection": "Connection with the watch",
+    "devicepage_prompt_watch_connection": "Connection with the device",
     "devicepage_prompt_available_devices": "Available Devices",
     "devicepage_error_bluetooth_off": "The Bluetooth is turned off",
     "devicepage_error_device_not_found": "No Bluetooth device found...",
